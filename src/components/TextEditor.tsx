@@ -42,6 +42,7 @@ export function TextEditor({ initialBlocks = [], onBlocksChange }: TextEditorPro
   const [draggedBlock, setDraggedBlock] = useState<string | null>(null);
   const [newTag, setNewTag] = useState('');
   const [addingTagToBlock, setAddingTagToBlock] = useState<string | null>(null);
+  const [lastAddedBlockId, setLastAddedBlockId] = useState<string | null>(null);
 
   // Auto-resize textarea function
   const autoResizeTextarea = (textarea: HTMLTextAreaElement) => {
@@ -64,16 +65,23 @@ export function TextEditor({ initialBlocks = [], onBlocksChange }: TextEditorPro
       tags: []
     };
 
+    setLastAddedBlockId(newBlock.id);
+    
     if (afterId) {
       const index = blocks.findIndex(b => b.id === afterId);
       const newBlocks = [...blocks];
       newBlocks.splice(index + 1, 0, newBlock);
       setBlocks(newBlocks);
+      setEditingBlock(newBlock.id);
     } else {
       setBlocks([...blocks, newBlock]);
+      setEditingBlock(newBlock.id);
     }
     
-    setEditingBlock(newBlock.id);
+    // Clear the lastAddedBlockId after animations complete
+    setTimeout(() => {
+      setLastAddedBlockId(null);
+    }, 800);
   };
 
   const updateBlock = (id: string, updates: Partial<Block>) => {
@@ -122,17 +130,32 @@ export function TextEditor({ initialBlocks = [], onBlocksChange }: TextEditorPro
   return (
     <div className="flex-1 relative">
       <AnimatePresence>
-        {blocks.map((block, index) => (
-          <motion.div
-            key={block.id}
-            id={`block-${block.id}`}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="relative mb-6"
-            onMouseEnter={() => setHoveredBlock(block.id)}
-            onMouseLeave={() => setHoveredBlock(null)}
-          >
+        {blocks.map((block, index) => {
+          const isNewBlock = block.id === lastAddedBlockId;
+          const newBlockIndex = lastAddedBlockId ? blocks.findIndex(b => b.id === lastAddedBlockId) : -1;
+          const shouldSlideDown = lastAddedBlockId && newBlockIndex !== -1 && index > newBlockIndex;
+          
+          return (
+            <motion.div
+              key={block.id}
+              id={`block-${block.id}`}
+              layout
+              initial={isNewBlock ? { opacity: 0, y: -10, scale: 0.98 } : { opacity: 1, y: 0, scale: 1 }}
+              animate={{
+                opacity: 1,
+                y: 0,
+                scale: 1
+              }}
+              exit={{ opacity: 0, y: -10, scale: 0.98 }}
+              transition={{
+                layout: { duration: 0.5, ease: "easeOut" },
+                opacity: { duration: isNewBlock ? 0.8 : 0.3 },
+                scale: { duration: isNewBlock ? 0.5 : 0.3 }
+              }}
+              className="relative mb-6"
+              onMouseEnter={() => setHoveredBlock(block.id)}
+              onMouseLeave={() => setHoveredBlock(null)}
+            >
 
 
             {/* Block container */}
@@ -281,23 +304,9 @@ export function TextEditor({ initialBlocks = [], onBlocksChange }: TextEditorPro
               )}
             </AnimatePresence>
 
-            {/* Add button below last block */}
-            {index === blocks.length - 1 && hoveredBlock !== block.id && (
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="mt-8 flex justify-center"
-              >
-                <button
-                  onClick={() => addBlock()}
-                  className="bg-gray-100 hover:bg-gray-200 text-gray-600 p-4 rounded-full shadow-md hover:shadow-lg transition-all"
-                >
-                  <Plus className="w-6 h-6" />
-                </button>
-              </motion.div>
-            )}
           </motion.div>
-        ))}
+          );
+        })}
       </AnimatePresence>
     </div>
   );
