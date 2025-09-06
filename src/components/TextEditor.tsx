@@ -263,43 +263,40 @@ export function TextEditor({ initialBlocks = [], onBlocksChange }: TextEditorPro
                 </div>
               </div>
 
-              {/* Delete button */}
-              {hoveredBlock === block.id && blocks.length > 1 && (
-                <motion.button
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  onClick={() => deleteBlock(block.id)}
-                  className="absolute -top-2 -right-2 bg-red-500 hover:bg-red-600 text-white p-1 rounded-full shadow-lg transition-colors"
-                >
-                  <X className="w-4 h-4" />
-                </motion.button>
-              )}
             </motion.div>
 
-            {/* Add buttons to the right of each block */}
+            {/* Action buttons at bottom-right of block */}
             <AnimatePresence>
               {hoveredBlock === block.id && (
                 <motion.div
-                  initial={{ opacity: 0, x: 10 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: 10 }}
-                  className="absolute right-0 top-1/2 transform -translate-y-1/2 -mr-16 flex flex-col gap-2 z-20"
+                  initial={{ opacity: 0, y: 5 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 5 }}
+                  className="absolute bottom-2 right-2 flex gap-1 z-20"
                 >
                   <button
                     onClick={() => addBlock(block.id, 'title')}
-                    className="bg-blue-500 hover:bg-blue-600 text-white p-2 rounded-full shadow-lg transition-colors"
+                    className="bg-blue-500 hover:bg-blue-600 text-white p-1 rounded shadow transition-colors"
                     title="Add title block"
                   >
-                    <Type className="w-4 h-4" />
+                    <Type className="w-3 h-3" />
                   </button>
                   <button
                     onClick={() => addBlock(block.id, 'body')}
-                    className="bg-green-500 hover:bg-green-600 text-white p-2 rounded-full shadow-lg transition-colors"
+                    className="bg-green-500 hover:bg-green-600 text-white p-1 rounded shadow transition-colors"
                     title="Add body block"
                   >
-                    <AlignLeft className="w-4 h-4" />
+                    <AlignLeft className="w-3 h-3" />
                   </button>
+                  {blocks.length > 1 && (
+                    <button
+                      onClick={() => deleteBlock(block.id)}
+                      className="bg-red-500 hover:bg-red-600 text-white p-1 rounded shadow transition-colors"
+                      title="Delete block"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  )}
                 </motion.div>
               )}
             </AnimatePresence>
