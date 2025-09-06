@@ -43,6 +43,7 @@ export function TextEditor({ initialBlocks = [], onBlocksChange }: TextEditorPro
   const [newTag, setNewTag] = useState('');
   const [addingTagToBlock, setAddingTagToBlock] = useState<string | null>(null);
   const [lastAddedBlockId, setLastAddedBlockId] = useState<string | null>(null);
+  const [deletingBlockId, setDeletingBlockId] = useState<string | null>(null);
 
   // Auto-resize textarea function
   const autoResizeTextarea = (textarea: HTMLTextAreaElement) => {
@@ -102,7 +103,14 @@ export function TextEditor({ initialBlocks = [], onBlocksChange }: TextEditorPro
   };
 
   const deleteBlock = (id: string) => {
-    setBlocks(blocks.filter(block => block.id !== id));
+    // Start the deletion animation
+    setDeletingBlockId(id);
+    
+    // After animation completes, remove from state
+    setTimeout(() => {
+      setBlocks(blocks.filter(block => block.id !== id));
+      setDeletingBlockId(null);
+    }, 300); // Match the exit animation duration
   };
 
   const addTag = (blockId: string, tag: string) => {
@@ -143,6 +151,7 @@ export function TextEditor({ initialBlocks = [], onBlocksChange }: TextEditorPro
       <AnimatePresence>
         {blocks.map((block, index) => {
           const isNewBlock = block.id === lastAddedBlockId;
+          const isDeletingBlock = block.id === deletingBlockId;
           const newBlockIndex = lastAddedBlockId ? blocks.findIndex(b => b.id === lastAddedBlockId) : -1;
           const shouldSlideDown = lastAddedBlockId && newBlockIndex !== -1 && index > newBlockIndex;
           
@@ -151,17 +160,19 @@ export function TextEditor({ initialBlocks = [], onBlocksChange }: TextEditorPro
               key={block.id}
               id={`block-${block.id}`}
               layout
-              initial={isNewBlock ? { opacity: 0, y: -10, scale: 0.98 } : { opacity: 1, y: 0, scale: 1 }}
+              initial={isNewBlock ? { opacity: 0, y: -10, scale: 0.98 } : { opacity: 1, y: 0, scale: 1, x: 0 }}
               animate={{
-                opacity: 1,
+                opacity: isDeletingBlock ? 0 : 1,
                 y: 0,
-                scale: 1
+                scale: 1,
+                x: isDeletingBlock ? 100 : 0
               }}
-              exit={{ opacity: 0, y: -10, scale: 0.98 }}
+              exit={{ opacity: 0, x: 100, scale: 0.98 }}
               transition={{
-                layout: { duration: 0.5, ease: "easeOut" },
-                opacity: { duration: isNewBlock ? 0.8 : 0.3 },
-                scale: { duration: isNewBlock ? 0.5 : 0.3 }
+                layout: { duration: 0.4, ease: "easeOut" },
+                opacity: { duration: isDeletingBlock ? 0.3 : (isNewBlock ? 0.8 : 0.3) },
+                scale: { duration: isDeletingBlock ? 0.3 : (isNewBlock ? 0.5 : 0.3) },
+                x: { duration: 0.3, ease: "easeOut" }
               }}
               className="relative mb-6"
               onMouseEnter={() => setHoveredBlock(block.id)}
