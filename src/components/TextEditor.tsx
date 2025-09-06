@@ -171,46 +171,30 @@ export function TextEditor({ initialBlocks = [], onBlocksChange }: TextEditorPro
               
               <div className="basis-0 content-stretch flex flex-col gap-4 grow items-start justify-start min-h-px min-w-40 relative shrink-0">
                 {/* Editable content */}
-                {editingBlock === block.id ? (
-                  <textarea
-                    ref={(textarea) => {
-                      if (textarea) {
-                        autoResizeTextarea(textarea);
-                      }
-                    }}
-                    value={block.content}
-                    onChange={(e) => {
-                      updateBlock(block.id, { content: e.target.value });
-                      autoResizeTextarea(e.target);
-                    }}
-                    onBlur={() => setEditingBlock(null)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Escape') setEditingBlock(null);
-                      if (e.key === 'Enter' && e.metaKey) setEditingBlock(null);
-                    }}
-                    className={`w-full bg-transparent border-none outline-none resize-none overflow-hidden ${
-                      block.type === 'title' 
-                        ? 'text-2xl font-semibold text-gray-900 tracking-tight' 
-                        : 'text-base text-gray-600 leading-relaxed'
-                    }`}
-                    style={{ minHeight: block.type === 'title' ? '1.5em' : '1.5em' }}
-                    autoFocus
-                  />
-                ) : (
-                  <div
-                    onClick={() => setEditingBlock(block.id)}
-                    className={`cursor-text w-full whitespace-pre-wrap ${
-                      block.type === 'title' 
-                        ? 'text-2xl font-semibold text-gray-900 tracking-tight' 
-                        : 'text-base text-gray-600 leading-relaxed'
-                    }`}
-                  >
-                    {block.content}
-                    {block.type === 'body' && block.content.includes('anecdotes') && (
-                      <span className="text-purple-600"> anecdotes, or even a very very short story</span>
-                    )}
-                  </div>
-                )}
+                <textarea
+                  ref={(textarea) => {
+                    if (textarea) {
+                      autoResizeTextarea(textarea);
+                    }
+                  }}
+                  value={block.content}
+                  onChange={(e) => {
+                    updateBlock(block.id, { content: e.target.value });
+                    autoResizeTextarea(e.target);
+                  }}
+                  onFocus={() => setEditingBlock(block.id)}
+                  onBlur={() => setEditingBlock(null)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Escape') e.target.blur();
+                    if (e.key === 'Enter' && e.metaKey) e.target.blur();
+                  }}
+                  className={`w-full bg-transparent border-none outline-none resize-none overflow-hidden cursor-text ${
+                    block.type === 'title' 
+                      ? 'text-2xl font-semibold text-gray-900 tracking-tight' 
+                      : 'text-base text-gray-600 leading-relaxed'
+                  }`}
+                  style={{ minHeight: block.type === 'title' ? '2.25rem' : '1.5rem' }}
+                />
 
                 {/* Tags */}
                 <div className="flex flex-wrap gap-2 items-center">
@@ -272,7 +256,8 @@ export function TextEditor({ initialBlocks = [], onBlocksChange }: TextEditorPro
                   initial={{ opacity: 0, y: 5 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: 5 }}
-                  className="absolute bottom-2 right-2 flex gap-1 z-20"
+                  className="absolute flex gap-1 z-20"
+                  style={{ bottom: '20px', right: '24px' }}
                 >
                   <button
                     onClick={() => addBlock(block.id, 'title')}
