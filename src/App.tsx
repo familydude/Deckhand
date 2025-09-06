@@ -4,6 +4,7 @@ import { ArrowRight } from 'lucide-react';
 import { Header } from './components/Header';
 import { Sidebar } from './components/Sidebar';
 import { TextEditor } from './components/TextEditor';
+import { Settings } from './components/Settings';
 
 interface Block {
   id: string;
@@ -114,54 +115,60 @@ export default function App() {
           onTouchMove={handleTouchMove}
           onTouchEnd={handleTouchEnd}
         >
-          {/* Title Section */}
-          <div className="px-8 py-6 bg-white border-b border-gray-200">
-            <div className="flex items-center gap-4">
-              <motion.div
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.95 }}
-                className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center cursor-pointer"
-              >
-                <ArrowRight className="w-6 h-6 text-gray-600" />
-              </motion.div>
-              
-              <motion.h1 
-                className="text-2xl font-semibold text-gray-900 flex-1 cursor-text"
-                onClick={() => {
-                  const input = document.createElement('input');
-                  input.value = title;
-                  input.className = 'text-2xl font-semibold text-gray-900 bg-transparent border-none outline-none w-full';
-                  input.onblur = () => {
-                    setTitle(input.value || title);
-                    input.replaceWith(titleElement);
-                  };
-                  input.onkeydown = (e) => {
-                    if (e.key === 'Enter') input.blur();
-                    if (e.key === 'Escape') {
+          {activeTab === 'Settings' ? (
+            <Settings />
+          ) : (
+            <>
+              {/* Title Section */}
+              <div className="px-8 py-6 bg-white border-b border-gray-200">
+                <div className="flex items-center gap-4">
+                  <motion.div
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.95 }}
+                    className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center cursor-pointer"
+                  >
+                    <ArrowRight className="w-6 h-6 text-gray-600" />
+                  </motion.div>
+                  
+                  <motion.h1 
+                    className="text-2xl font-semibold text-gray-900 flex-1 cursor-text"
+                    onClick={() => {
+                      const input = document.createElement('input');
                       input.value = title;
-                      input.blur();
-                    }
-                  };
-                  const titleElement = document.querySelector('h1');
-                  titleElement?.replaceWith(input);
-                  input.focus();
-                }}
-                whileHover={{ color: '#3B82F6' }}
-              >
-                {title}
-              </motion.h1>
-            </div>
-          </div>
+                      input.className = 'text-2xl font-semibold text-gray-900 bg-transparent border-none outline-none w-full';
+                      input.onblur = () => {
+                        setTitle(input.value || title);
+                        input.replaceWith(titleElement);
+                      };
+                      input.onkeydown = (e) => {
+                        if (e.key === 'Enter') input.blur();
+                        if (e.key === 'Escape') {
+                          input.value = title;
+                          input.blur();
+                        }
+                      };
+                      const titleElement = document.querySelector('h1');
+                      titleElement?.replaceWith(input);
+                      input.focus();
+                    }}
+                    whileHover={{ color: '#3B82F6' }}
+                  >
+                    {title}
+                  </motion.h1>
+                </div>
+              </div>
 
-          {/* Editor Content */}
-          <div className="flex-1 overflow-auto p-8">
-            <div className="max-w-4xl mx-auto">
-              <TextEditor 
-                initialBlocks={blocks}
-                onBlocksChange={handleBlocksChange}
-              />
-            </div>
-          </div>
+              {/* Editor Content */}
+              <div className="flex-1 overflow-auto p-8">
+                <div className="max-w-4xl mx-auto">
+                  <TextEditor 
+                    initialBlocks={blocks}
+                    onBlocksChange={handleBlocksChange}
+                  />
+                </div>
+              </div>
+            </>
+          )}
         </div>
 
         {/* Sidebar Toggle Button (Mobile) */}

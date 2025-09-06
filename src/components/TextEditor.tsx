@@ -78,6 +78,17 @@ export function TextEditor({ initialBlocks = [], onBlocksChange }: TextEditorPro
       setEditingBlock(newBlock.id);
     }
     
+    // Scroll to the new block after DOM update
+    setTimeout(() => {
+      const blockElement = document.getElementById(`block-${newBlock.id}`);
+      if (blockElement) {
+        blockElement.scrollIntoView({ 
+          behavior: 'smooth', 
+          block: 'center' 
+        });
+      }
+    }, 100);
+    
     // Clear the lastAddedBlockId after animations complete
     setTimeout(() => {
       setLastAddedBlockId(null);
