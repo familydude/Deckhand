@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { motion } from 'motion/react';
+import { useState, useEffect } from 'react';
+import { motion, Reorder } from 'motion/react';
 import { Star, Book, Bookmark, ArrowRight, MoreHorizontal, AlignLeft } from 'lucide-react';
 import svgPaths from "../imports/svg-gsfv4q9vrt";
 
@@ -13,12 +13,35 @@ interface Block {
 interface SidebarProps {
   blocks: Block[];
   onBlockClick: (blockId: string) => void;
+  onBlockReorder: (reorderedBlocks: Block[]) => void;
   activeTab: string;
   setActiveTab: (tab: string) => void;
 }
 
-export function Sidebar({ blocks, onBlockClick, activeTab, setActiveTab }: SidebarProps) {
+export function Sidebar({ blocks, onBlockClick, onBlockReorder, activeTab, setActiveTab }: SidebarProps) {
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [localBlocks, setLocalBlocks] = useState(blocks);
+  
+  // Sync with parent blocks when they change (but avoid infinite loops)
+  useEffect(() => {
+    // Only sync if blocks actually changed in content or structure, not just order from our own reorder
+    const blocksChanged = blocks.length !== localBlocks.length || 
+      blocks.some(block => {
+        const localBlock = localBlocks.find(local => local.id === block.id);
+        return !localBlock || localBlock.content !== block.content || 
+               JSON.stringify(localBlock.tags) !== JSON.stringify(block.tags);
+      });
+    
+    if (!isDragging && blocksChanged) {
+      setLocalBlocks(blocks);
+    }
+  }, [blocks, isDragging, localBlocks]);
+  
+  const handleReorder = (reorderedBlocks: Block[]) => {
+    setLocalBlocks(reorderedBlocks);
+    onBlockReorder(reorderedBlocks);
+  };
   
   const tabs = ['Main', 'Later', 'Notes', 'Theme', 'Settings', 'Board'];
 
@@ -40,17 +63,51 @@ export function Sidebar({ blocks, onBlockClick, activeTab, setActiveTab }: Sideb
             </div>
             
             {/* Document Structure Items */}
-            <div className="space-y-1">
-              {blocks.map((block, index) => (
-                <motion.div
+            <Reorder.Group 
+              axis="y" 
+              values={localBlocks} 
+              onReorder={handleReorder}
+              className=""
+            >
+              {localBlocks.map((block, index) => (
+                <Reorder.Item
                   key={block.id}
-                  className={`px-4 py-3 rounded-lg cursor-pointer transition-colors ${
-                    hoveredItem === block.id ? 'bg-gray-50' : ''
+                  value={block}
+                  className={`px-4 py-3 rounded-lg cursor-grab active:cursor-grabbing transition-colors ${
+                    hoveredItem === block.id && !isDragging ? 'bg-gray-50' : ''
                   }`}
-                  onMouseEnter={() => setHoveredItem(block.id)}
-                  onMouseLeave={() => setHoveredItem(null)}
-                  onClick={() => onBlockClick(block.id)}
-                  whileHover={{ x: 2 }}
+                  style={{ 
+                    listStyle: 'none',
+                    margin: '2px 0',
+                    padding: '12px 16px',
+                    borderRadius: '8px'
+                  }}
+                  onMouseEnter={() => !isDragging && setHoveredItem(block.id)}
+                  onMouseLeave={() => !isDragging && setHoveredItem(null)}
+                  onDragStart={() => setIsDragging(true)}
+                  onDragEnd={() => setIsDragging(false)}
+                  onClick={(e) => {
+                    // Only handle click if not dragging
+                    if (!isDragging) {
+                      onBlockClick(block.id);
+                    }
+                  }}
+                  whileHover={!isDragging ? { x: 2 } : {}}
+                  whileDrag={{ 
+                    scale: 1.05,
+                    zIndex: 1000,
+                    backgroundColor: 'rgba(249, 250, 251, 0.95)',
+                    boxShadow: '0 8px 25px rgba(0, 0, 0, 0.15)',
+                    borderRadius: '8px'
+                  }}
+                  layout
+                  initial={false}
+                  animate={{
+                    backgroundColor: hoveredItem === block.id && !isDragging ? '#F9FAFB' : 'transparent'
+                  }}
+                  transition={{
+                    layout: { duration: 0.15, ease: "easeOut" }
+                  }}
                 >
                   <div className="flex items-start gap-3">
                     {block.type === 'title' ? (
@@ -81,9 +138,9 @@ export function Sidebar({ blocks, onBlockClick, activeTab, setActiveTab }: Sideb
                       )}
                     </div>
                   </div>
-                </motion.div>
+                </Reorder.Item>
               ))}
-            </div>
+            </Reorder.Group>
           </div>
         </div>
       </div>

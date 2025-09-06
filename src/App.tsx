@@ -79,6 +79,17 @@ export default function App() {
     setBlocks(newBlocks);
   };
 
+  // Handle block reorder from Sidebar
+  const handleBlockReorder = (reorderedBlocks: Block[]) => {
+    // Only update if the order actually changed to prevent loops
+    const currentOrder = blocks.map(b => b.id).join(',');
+    const newOrder = reorderedBlocks.map(b => b.id).join(',');
+    
+    if (currentOrder !== newOrder) {
+      setBlocks(reorderedBlocks);
+    }
+  };
+
   return (
     <div className="h-screen flex flex-col bg-gray-50">
       <Header 
@@ -102,6 +113,7 @@ export default function App() {
           <Sidebar 
             blocks={blocks}
             onBlockClick={handleBlockClick}
+            onBlockReorder={handleBlockReorder}
             activeTab={activeTab}
             setActiveTab={setActiveTab}
           />
@@ -162,6 +174,7 @@ export default function App() {
               <div className="flex-1 overflow-auto p-8">
                 <div className="max-w-4xl mx-auto">
                   <TextEditor 
+                    key={blocks.map(b => b.id).join(',')}
                     initialBlocks={blocks}
                     onBlocksChange={handleBlocksChange}
                   />

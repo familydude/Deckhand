@@ -58,6 +58,8 @@ export function TextEditor({ initialBlocks = [], onBlocksChange }: TextEditorPro
     }
   }, [blocks, onBlocksChange]);
 
+
+
   const addBlock = (afterId?: string, type: 'title' | 'body' = 'body') => {
     const newBlock: Block = {
       id: Date.now().toString(),
