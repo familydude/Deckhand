@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Plus, X, GripVertical, Type, AlignLeft, Hash } from 'lucide-react';
+import { Plus, X, GripVertical, Type, AlignLeft, Hash, ArrowRight } from 'lucide-react';
 import svgPaths from "../imports/svg-gsfv4q9vrt";
 
 interface Block {
@@ -272,25 +272,61 @@ export function TextEditor({ initialBlocks = [], onBlocksChange }: TextEditorPro
                 >
                   <button
                     onClick={() => addBlock(block.id, 'title')}
-                    className="bg-blue-500 hover:bg-blue-600 text-white p-1 rounded shadow transition-colors"
+                    className="w-6 h-6 rounded-full shadow-lg border-0 transition-all duration-200 flex items-center justify-center"
                     title="Add title block"
+                    style={{ 
+                      backgroundColor: '#111827',
+                      color: 'white'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = '#D1D5DB';
+                      e.currentTarget.style.color = 'black';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = '#111827';
+                      e.currentTarget.style.color = 'white';
+                    }}
                   >
-                    <Type className="w-3 h-3" />
+                    <span className="text-xs font-bold">T</span>
                   </button>
                   <button
                     onClick={() => addBlock(block.id, 'body')}
-                    className="bg-green-500 hover:bg-green-600 text-white p-1 rounded shadow transition-colors"
+                    className="w-6 h-6 rounded-full shadow-lg border-0 transition-all duration-200 flex items-center justify-center"
                     title="Add body block"
+                    style={{ 
+                      backgroundColor: '#111827',
+                      color: 'white'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = '#D1D5DB';
+                      e.currentTarget.style.color = 'black';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = '#111827';
+                      e.currentTarget.style.color = 'white';
+                    }}
                   >
-                    <AlignLeft className="w-3 h-3" />
+                    <Plus className="w-3 h-3" />
                   </button>
                   {blocks.length > 1 && (
                     <button
                       onClick={() => deleteBlock(block.id)}
-                      className="bg-red-500 hover:bg-red-600 text-white p-1 rounded shadow transition-colors"
+                      className="w-6 h-6 rounded-full shadow-lg border-0 transition-all duration-200 flex items-center justify-center"
                       title="Delete block"
+                      style={{ 
+                        backgroundColor: '#111827',
+                        color: 'white'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = '#D1D5DB';
+                        e.currentTarget.style.color = 'black';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = '#111827';
+                        e.currentTarget.style.color = 'white';
+                      }}
                     >
-                      <X className="w-3 h-3" />
+                      <ArrowRight className="w-3 h-3" />
                     </button>
                   )}
                 </motion.div>
