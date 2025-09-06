@@ -135,12 +135,8 @@ export function TextEditor({ initialBlocks = [], onBlocksChange }: TextEditorPro
           >
 
 
-            {/* Block container with slide animation */}
+            {/* Block container */}
             <motion.div
-              animate={{
-                y: hoveredBlock && blocks.findIndex(b => b.id === hoveredBlock) < index ? 60 : 0
-              }}
-              transition={{ type: "spring", stiffness: 300, damping: 30 }}
               className="bg-white box-border content-start flex flex-wrap gap-6 items-start justify-start min-w-60 p-6 rounded-lg w-full border border-gray-200 shadow-sm"
             >
               {/* Drag handle */}
@@ -258,31 +254,29 @@ export function TextEditor({ initialBlocks = [], onBlocksChange }: TextEditorPro
               )}
             </motion.div>
 
-            {/* Add buttons below each block */}
+            {/* Add buttons to the right of each block */}
             <AnimatePresence>
               {hoveredBlock === block.id && (
                 <motion.div
-                  initial={{ opacity: 0, y: -10, scale: 0.8 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, y: -10, scale: 0.8 }}
-                  className="flex justify-center mt-4 mb-2 z-20"
+                  initial={{ opacity: 0, x: 10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: 10 }}
+                  className="absolute right-0 top-1/2 transform -translate-y-1/2 -mr-16 flex flex-col gap-2 z-20"
                 >
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => addBlock(block.id, 'title')}
-                      className="bg-blue-500 hover:bg-blue-600 text-white p-2 rounded-full shadow-lg transition-colors"
-                      title="Add title block"
-                    >
-                      <Type className="w-4 h-4" />
-                    </button>
-                    <button
-                      onClick={() => addBlock(block.id, 'body')}
-                      className="bg-green-500 hover:bg-green-600 text-white p-2 rounded-full shadow-lg transition-colors"
-                      title="Add body block"
-                    >
-                      <AlignLeft className="w-4 h-4" />
-                    </button>
-                  </div>
+                  <button
+                    onClick={() => addBlock(block.id, 'title')}
+                    className="bg-blue-500 hover:bg-blue-600 text-white p-2 rounded-full shadow-lg transition-colors"
+                    title="Add title block"
+                  >
+                    <Type className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={() => addBlock(block.id, 'body')}
+                    className="bg-green-500 hover:bg-green-600 text-white p-2 rounded-full shadow-lg transition-colors"
+                    title="Add body block"
+                  >
+                    <AlignLeft className="w-4 h-4" />
+                  </button>
                 </motion.div>
               )}
             </AnimatePresence>
