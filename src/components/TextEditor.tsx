@@ -1,7 +1,17 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useReducer } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Plus, X, GripVertical, Type, AlignLeft, Hash, ArrowRight } from 'lucide-react';
 import svgPaths from "../imports/svg-gsfv4q9vrt";
+
+
+
+type BlockAction = 
+  | { type: 'UPDATE_BLOCK'; blockId: string; updates: Partial<Block> }
+  | { type: 'ADD_BLOCK'; afterId?: string; blockType: 'title' | 'body' }
+  | { type: 'DELETE_BLOCK'; blockId: string }
+  | { type: 'ADD_TAG'; blockId: string; tag: string }
+  | { type: 'REMOVE_TAG'; blockId: string; tagIndex: number }
+  | { type: 'SYNC_FROM_SIDEBAR'; blocks: Block[] };
 
 interface Block {
   id: string;
@@ -10,13 +20,66 @@ interface Block {
   tags: string[];
 }
 
+const blockReducer = (state: Block[], action: BlockAction): Block[] => {
+  switch (action.type) {
+    case 'UPDATE_BLOCK':
+      return state.map(block => 
+        block.id === action.blockId 
+          ? { ...block, ...action.updates }
+          : block
+      );
+    
+    case 'ADD_BLOCK': {
+      const newBlock: Block = {
+        id: Date.now().toString(),
+        type: action.blockType,
+        content: action.blockType === 'title' ? 'New Title' : 'New body text...',
+        tags: []
+      };
+      
+      if (action.afterId) {
+        const index = state.findIndex(b => b.id === action.afterId);
+        const newBlocks = [...state];
+        newBlocks.splice(index + 1, 0, newBlock);
+        return newBlocks;
+      } else {
+        return [...state, newBlock];
+      }
+    }
+    
+    case 'DELETE_BLOCK':
+      return state.filter(block => block.id !== action.blockId);
+    
+    case 'ADD_TAG': {
+      return state.map(block =>
+        block.id === action.blockId
+          ? { ...block, tags: [...block.tags, action.tag] }
+          : block
+      );
+    }
+    
+    case 'REMOVE_TAG': {
+      return state.map(block =>
+        block.id === action.blockId
+          ? { ...block, tags: block.tags.filter((_, i) => i !== action.tagIndex) }
+          : block
+      );
+    }
+    
+    case 'SYNC_FROM_SIDEBAR':
+      return action.blocks;
+    
+    default:
+      return state;
+  }
+};
 interface TextEditorProps {
   initialBlocks?: Block[];
   onBlocksChange?: (blocks: Block[]) => void;
 }
 
 export function TextEditor({ initialBlocks = [], onBlocksChange }: TextEditorProps) {
-  const [blocks, setBlocks] = useState<Block[]>(initialBlocks.length > 0 ? initialBlocks : [
+  const [blocks, dispatch] = useReducer(blockReducer, initialBlocks.length > 0 ? initialBlocks : [
     {
       id: '1',
       type: 'title',
@@ -44,6 +107,7 @@ export function TextEditor({ initialBlocks = [], onBlocksChange }: TextEditorPro
   const [addingTagToBlock, setAddingTagToBlock] = useState<string | null>(null);
   const [lastAddedBlockId, setLastAddedBlockId] = useState<string | null>(null);
   const [deletingBlockId, setDeletingBlockId] = useState<string | null>(null);
+  const isExternalUpdate = useRef(false);
 
   // Auto-resize textarea function
   const autoResizeTextarea = (textarea: HTMLTextAreaElement) => {
@@ -51,39 +115,43 @@ export function TextEditor({ initialBlocks = [], onBlocksChange }: TextEditorPro
     textarea.style.height = textarea.scrollHeight + 'px';
   };
 
-  // Call onBlocksChange whenever blocks state changes
-  useEffect(() => {
-    if (onBlocksChange) {
-      onBlocksChange(blocks);
-    }
-  }, [blocks, onBlocksChange]);
+  const onBlocksChangeRef = useRef(onBlocksChange);
+onBlocksChangeRef.current = onBlocksChange;
 
+useEffect(() => {
+  if (!isExternalUpdate.current && onBlocksChangeRef.current) {
+    console.log('Calling onBlocksChange');
+    onBlocksChangeRef.current(blocks);
+  }
+  isExternalUpdate.current = false;
+}, [blocks]); // Keep blocks dependency but use ref for callback
 
+useEffect(() => {
+  const currentOrder = blocks.map(b => b.id).join(',');
+  const newOrder = initialBlocks.map(b => b.id).join(',');
+  
+  console.log('Comparing orders:', { currentOrder, newOrder });
+  
+  if (currentOrder !== newOrder && initialBlocks.length > 0) {
+    console.log('Syncing from sidebar');
+    isExternalUpdate.current = true;
+    dispatch({ type: 'SYNC_FROM_SIDEBAR', blocks: initialBlocks });
+  }
+}, [initialBlocks]); // Only initialBlocks, not blocks!
 
-  const addBlock = (afterId?: string, type: 'title' | 'body' = 'body') => {
-    const newBlock: Block = {
-      id: Date.now().toString(),
-      type,
-      content: type === 'title' ? 'New Title' : 'New body text...',
-      tags: []
-    };
-
-    setLastAddedBlockId(newBlock.id);
-    
-    if (afterId) {
-      const index = blocks.findIndex(b => b.id === afterId);
-      const newBlocks = [...blocks];
-      newBlocks.splice(index + 1, 0, newBlock);
-      setBlocks(newBlocks);
-      setEditingBlock(newBlock.id);
-    } else {
-      setBlocks([...blocks, newBlock]);
-      setEditingBlock(newBlock.id);
-    }
+const addBlock = (afterId?: string, type: 'title' | 'body' = 'body') => {
+  const newBlockId = Date.now().toString();
+  setLastAddedBlockId(newBlockId);
+  
+  dispatch({ type: 'ADD_BLOCK', afterId, blockType: type });
+  setEditingBlock(newBlockId);
+  
+  // Keep the scrolling logic the same
+ 
     
     // Scroll to the new block after DOM update
     setTimeout(() => {
-      const blockElement = document.getElementById(`block-${newBlock.id}`);
+      const blockElement = document.getElementById(`block-${newBlockId}`);
       if (blockElement) {
         blockElement.scrollIntoView({ 
           behavior: 'smooth', 
@@ -93,50 +161,47 @@ export function TextEditor({ initialBlocks = [], onBlocksChange }: TextEditorPro
     }, 100);
     
     // Clear the lastAddedBlockId after animations complete
-    setTimeout(() => {
-      setLastAddedBlockId(null);
-    }, 800);
-  };
-
-  const updateBlock = (id: string, updates: Partial<Block>) => {
-    setBlocks(blocks.map(block => 
-      block.id === id ? { ...block, ...updates } : block
-    ));
-  };
-
-  const deleteBlock = (id: string) => {
-    // Start the deletion animation
-    setDeletingBlockId(id);
-    
-    // After animation completes, remove from state
-    setTimeout(() => {
-      setBlocks(blocks.filter(block => block.id !== id));
-      setDeletingBlockId(null);
-    }, 300); // Match the exit animation duration
-  };
-
-  const addTag = (blockId: string, tag: string) => {
-    if (tag.trim()) {
-      updateBlock(blockId, {
-        tags: [...blocks.find(b => b.id === blockId)?.tags || [], tag.trim()]
+   setTimeout(() => {
+    const blockElement = document.getElementById(`block-${newBlockId}`);
+    if (blockElement) {
+      blockElement.scrollIntoView({ 
+        behavior: 'smooth', 
+        block: 'center' 
       });
     }
+  }, 100);
+  
+  setTimeout(() => {
+    setLastAddedBlockId(null);
+  }, 800);
+};
+
+    const updateBlock = (id: string, updates: Partial<Block>) => {
+    dispatch({ type: 'UPDATE_BLOCK', blockId: id, updates });
   };
 
-  const removeTag = (blockId: string, tagIndex: number) => {
-    const block = blocks.find(b => b.id === blockId);
-    if (block) {
-      const newTags = block.tags.filter((_, i) => i !== tagIndex);
-      updateBlock(blockId, { tags: newTags });
-    }
-  };
+ const deleteBlock = (id: string) => {
+  // Start the deletion animation
+  setDeletingBlockId(id);
+  
+  // After animation completes, remove from state
+  setTimeout(() => {
+    dispatch({ type: 'DELETE_BLOCK', blockId: id });
+    setDeletingBlockId(null);
+  }, 300);
+};
 
-  const moveBlock = (dragIndex: number, dropIndex: number) => {
-    const newBlocks = [...blocks];
-    const [removed] = newBlocks.splice(dragIndex, 1);
-    newBlocks.splice(dropIndex, 0, removed);
-    setBlocks(newBlocks);
-  };
+  const addTag = (blockId: string, tag: string) => {
+  if (tag.trim()) {
+    dispatch({ type: 'ADD_TAG', blockId, tag: tag.trim() });
+  }
+};
+
+const removeTag = (blockId: string, tagIndex: number) => {
+  dispatch({ type: 'REMOVE_TAG', blockId, tagIndex });
+};
+
+ 
 
   const Info = () => (
     <div className="relative shrink-0 size-8">

@@ -174,7 +174,7 @@ export default function App() {
               <div className="flex-1 overflow-auto p-8">
                 <div className="max-w-4xl mx-auto">
                   <TextEditor 
-                    key={blocks.map(b => b.id).join(',')}
+                    key="main-editor" // static key for animations to go smoother
                     initialBlocks={blocks}
                     onBlocksChange={handleBlocksChange}
                   />
