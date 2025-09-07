@@ -103,7 +103,7 @@ export function Sidebar({ blocks, onBlockClick, onBlockReorder, activeTab, setAc
                   layout
                   initial={false}
                   animate={{
-                    backgroundColor: hoveredItem === block.id && !isDragging ? '#F9FAFB' : 'transparent'
+                    backgroundColor: hoveredItem === block.id && !isDragging ? '#F9FAFB' : 'rgba(0, 0, 0, 0)'
                   }}
                   transition={{
                     layout: { duration: 0.15, ease: "easeOut" }
