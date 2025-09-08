@@ -86,7 +86,7 @@ export function Sidebar({ blocks, onBlockClick, onBlockReorder, activeTab, setAc
                   onMouseLeave={() => !isDragging && setHoveredItem(null)}
                   onDragStart={() => setIsDragging(true)}
                   onDragEnd={() => setIsDragging(false)}
-                  onClick={(e) => {
+                  onClick={(e: React.MouseEvent) => {
                     // Only handle click if not dragging
                     if (!isDragging) {
                       onBlockClick(block.id);

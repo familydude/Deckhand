@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef } from 'react';
 import { motion } from 'motion/react';
 import { ArrowRight } from 'lucide-react';
 import { Header } from './components/Header';
@@ -150,7 +150,9 @@ export default function App() {
                       input.className = 'text-2xl font-semibold text-gray-900 bg-transparent border-none outline-none w-full';
                       input.onblur = () => {
                         setTitle(input.value || title);
-                        input.replaceWith(titleElement);
+                        if (titleElement){
+                           input.replaceWith(titleElement);
+                        }
                       };
                       input.onkeydown = (e) => {
                         if (e.key === 'Enter') input.blur();
