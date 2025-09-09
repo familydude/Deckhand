@@ -1,5 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { motion, Reorder } from 'motion/react';
+import { BlockAction } from '../App';
+
 import { Star, Book, Bookmark, ArrowRight, MoreHorizontal, AlignLeft } from 'lucide-react';
 import svgPaths from "../imports/svg-gsfv4q9vrt";
 
@@ -13,35 +15,18 @@ interface Block {
 interface SidebarProps {
   blocks: Block[];
   onBlockClick: (blockId: string) => void;
-  onBlockReorder: (reorderedBlocks: Block[]) => void;
+  dispatch: React.Dispatch<BlockAction>;
   activeTab: string;
   setActiveTab: (tab: string) => void;
 }
 
-export function Sidebar({ blocks, onBlockClick, onBlockReorder, activeTab, setActiveTab }: SidebarProps) {
+export function Sidebar({ blocks, onBlockClick, dispatch, activeTab, setActiveTab }: SidebarProps) {
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
-  const [localBlocks, setLocalBlocks] = useState(blocks);
+   
+ 
   
-  // Sync with parent blocks when they change (but avoid infinite loops)
-  useEffect(() => {
-    // Only sync if blocks actually changed in content or structure, not just order from our own reorder
-    const blocksChanged = blocks.length !== localBlocks.length || 
-      blocks.some(block => {
-        const localBlock = localBlocks.find(local => local.id === block.id);
-        return !localBlock || localBlock.content !== block.content || 
-               JSON.stringify(localBlock.tags) !== JSON.stringify(block.tags);
-      });
-    
-    if (!isDragging && blocksChanged) {
-      setLocalBlocks(blocks);
-    }
-  }, [blocks, isDragging, localBlocks]);
-  
-  const handleReorder = (reorderedBlocks: Block[]) => {
-    setLocalBlocks(reorderedBlocks);
-    onBlockReorder(reorderedBlocks);
-  };
+ 
   
   const tabs = ['Main', 'Later', 'Notes', 'Theme', 'Settings', 'Board'];
 
@@ -65,11 +50,10 @@ export function Sidebar({ blocks, onBlockClick, onBlockReorder, activeTab, setAc
             {/* Document Structure Items */}
             <Reorder.Group 
               axis="y" 
-              values={localBlocks} 
-              onReorder={handleReorder}
-              className=""
+            values={blocks} 
+            onReorder={(reorderedBlocks) => dispatch({ type: 'REORDER_BLOCKS', blocks: reorderedBlocks })}
             >
-              {localBlocks.map((block, index) => (
+                {blocks.map((block, index) => (
                 <Reorder.Item
                   key={block.id}
                   value={block}

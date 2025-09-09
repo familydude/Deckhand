@@ -1,17 +1,13 @@
-import { useState, useRef, useEffect, useReducer } from 'react';
+import { useState, useRef } from 'react';
+import { BlockAction } from '../App';
+
 import { motion, AnimatePresence } from 'motion/react';
 import { Plus, X, GripVertical, Type, AlignLeft, Hash, ArrowRight } from 'lucide-react';
 import svgPaths from "../imports/svg-gsfv4q9vrt";
 
 
 
-type BlockAction = 
-  | { type: 'UPDATE_BLOCK'; blockId: string; updates: Partial<Block> }
-  | { type: 'ADD_BLOCK'; afterId?: string; blockType: 'title' | 'body' }
-  | { type: 'DELETE_BLOCK'; blockId: string }
-  | { type: 'ADD_TAG'; blockId: string; tag: string }
-  | { type: 'REMOVE_TAG'; blockId: string; tagIndex: number }
-  | { type: 'SYNC_FROM_SIDEBAR'; blocks: Block[] };
+
 
 interface Block {
   id: string;
@@ -20,86 +16,14 @@ interface Block {
   tags: string[];
 }
 
-const blockReducer = (state: Block[], action: BlockAction): Block[] => {
-  switch (action.type) {
-    case 'UPDATE_BLOCK':
-      return state.map(block => 
-        block.id === action.blockId 
-          ? { ...block, ...action.updates }
-          : block
-      );
-    
-    case 'ADD_BLOCK': {
-      const newBlock: Block = {
-        id: Date.now().toString(),
-        type: action.blockType,
-        content: action.blockType === 'title' ? 'New Title' : 'New body text...',
-        tags: []
-      };
-      
-      if (action.afterId) {
-        const index = state.findIndex(b => b.id === action.afterId);
-        const newBlocks = [...state];
-        newBlocks.splice(index + 1, 0, newBlock);
-        return newBlocks;
-      } else {
-        return [...state, newBlock];
-      }
-    }
-    
-    case 'DELETE_BLOCK':
-      return state.filter(block => block.id !== action.blockId);
-    
-    case 'ADD_TAG': {
-      return state.map(block =>
-        block.id === action.blockId
-          ? { ...block, tags: [...block.tags, action.tag] }
-          : block
-      );
-    }
-    
-    case 'REMOVE_TAG': {
-      return state.map(block =>
-        block.id === action.blockId
-          ? { ...block, tags: block.tags.filter((_, i) => i !== action.tagIndex) }
-          : block
-      );
-    }
-    
-    case 'SYNC_FROM_SIDEBAR':
-      return action.blocks;
-    
-    default:
-      return state;
-  }
-};
+
 interface TextEditorProps {
-  initialBlocks?: Block[];
-  onBlocksChange?: (blocks: Block[]) => void;
+  blocks: Block[];
+  dispatch: React.Dispatch<BlockAction>;
 }
 
-export function TextEditor({ initialBlocks = [], onBlocksChange }: TextEditorProps) {
-  const [blocks, dispatch] = useReducer(blockReducer, initialBlocks.length > 0 ? initialBlocks : [
-    {
-      id: '1',
-      type: 'title',
-      content: 'Title',
-      tags: ['Tag']
-    },
-    {
-      id: '2',
-      type: 'body',
-      content: "Body text for whatever you'd like to say. Add main takeaway points, quotes, anecdotes, or even a very very short story. Body text for whatever you'd like to say. Add main takeaway points. Body text for whatever you'd like to say. Add main takeaway points",
-      tags: ['Tag']
-    },
-    {
-      id: '3',
-      type: 'body',
-      content: "Body text for whatever you'd like to say. Add main takeaway points, quotes, anecdotes, or even a very very short story.",
-      tags: ['Tag']
-    }
-  ]);
-  
+export function TextEditor({ blocks, dispatch }: TextEditorProps) {
+   
   const [hoveredBlock, setHoveredBlock] = useState<string | null>(null);
   const [editingBlock, setEditingBlock] = useState<string | null>(null);
   const [draggedBlock, setDraggedBlock] = useState<string | null>(null);
@@ -107,37 +31,16 @@ export function TextEditor({ initialBlocks = [], onBlocksChange }: TextEditorPro
   const [addingTagToBlock, setAddingTagToBlock] = useState<string | null>(null);
   const [lastAddedBlockId, setLastAddedBlockId] = useState<string | null>(null);
   const [deletingBlockId, setDeletingBlockId] = useState<string | null>(null);
-  const isExternalUpdate = useRef(false);
-
+ 
   // Auto-resize textarea function
   const autoResizeTextarea = (textarea: HTMLTextAreaElement) => {
     textarea.style.height = 'auto';
     textarea.style.height = textarea.scrollHeight + 'px';
   };
 
-  const onBlocksChangeRef = useRef(onBlocksChange);
-onBlocksChangeRef.current = onBlocksChange;
+ 
 
-useEffect(() => {
-  if (!isExternalUpdate.current && onBlocksChangeRef.current) {
-    console.log('Calling onBlocksChange');
-    onBlocksChangeRef.current(blocks);
-  }
-  isExternalUpdate.current = false;
-}, [blocks]); // Keep blocks dependency but use ref for callback
-
-useEffect(() => {
-  const currentOrder = blocks.map(b => b.id).join(',');
-  const newOrder = initialBlocks.map(b => b.id).join(',');
-  
-  console.log('Comparing orders:', { currentOrder, newOrder });
-  
-  if (currentOrder !== newOrder && initialBlocks.length > 0) {
-    console.log('Syncing from sidebar');
-    isExternalUpdate.current = true;
-    dispatch({ type: 'SYNC_FROM_SIDEBAR', blocks: initialBlocks });
-  }
-}, [initialBlocks]); // Only initialBlocks, not blocks!
+ 
 
 const addBlock = (afterId?: string, type: 'title' | 'body' = 'body') => {
   const newBlockId = Date.now().toString();
@@ -145,7 +48,7 @@ const addBlock = (afterId?: string, type: 'title' | 'body' = 'body') => {
   
   dispatch({ type: 'ADD_BLOCK', afterId, blockType: type });
   setEditingBlock(newBlockId);
-  
+
   // Keep the scrolling logic the same
  
     
@@ -176,22 +79,20 @@ const addBlock = (afterId?: string, type: 'title' | 'body' = 'body') => {
   }, 800);
 };
 
-    const updateBlock = (id: string, updates: Partial<Block>) => {
+ const updateBlock = (id: string, updates: Partial<Block>) => {
     dispatch({ type: 'UPDATE_BLOCK', blockId: id, updates });
-  };
+};
 
  const deleteBlock = (id: string) => {
-  // Start the deletion animation
   setDeletingBlockId(id);
   
-  // After animation completes, remove from state
   setTimeout(() => {
     dispatch({ type: 'DELETE_BLOCK', blockId: id });
     setDeletingBlockId(null);
   }, 300);
 };
 
-  const addTag = (blockId: string, tag: string) => {
+const addTag = (blockId: string, tag: string) => {
   if (tag.trim()) {
     dispatch({ type: 'ADD_TAG', blockId, tag: tag.trim() });
   }
@@ -274,8 +175,9 @@ const removeTag = (blockId: string, tagIndex: number) => {
                   onFocus={() => setEditingBlock(block.id)}
                   onBlur={() => setEditingBlock(null)}
                   onKeyDown={(e) => {
-                    if (e.key === 'Escape') e.target.blur();
-                    if (e.key === 'Enter' && e.metaKey) e.target.blur();
+                    const target = e.target as HTMLElement;
+                      if (e.key === 'Escape' && target?.blur) target.blur();
+                      //if (e.key === 'Enter' && e.metaKey && target?.blur) target.blur();
                   }}
                   className={`w-full bg-transparent border-none outline-none resize-none overflow-hidden cursor-text ${
                     block.type === 'title' 

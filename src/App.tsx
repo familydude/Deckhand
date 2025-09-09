@@ -1,10 +1,70 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useReducer } from 'react';
 import { motion } from 'motion/react';
 import { ArrowRight } from 'lucide-react';
 import { Header } from './components/Header';
 import { Sidebar } from './components/Sidebar';
 import { TextEditor } from './components/TextEditor';
 import { Settings } from './components/Settings';
+
+export type BlockAction = 
+  | { type: 'UPDATE_BLOCK'; blockId: string; updates: Partial<Block> }
+  | { type: 'ADD_BLOCK'; afterId?: string; blockType: 'title' | 'body' }
+  | { type: 'DELETE_BLOCK'; blockId: string }
+  | { type: 'ADD_TAG'; blockId: string; tag: string }
+  | { type: 'REMOVE_TAG'; blockId: string; tagIndex: number }
+  | { type: 'REORDER_BLOCKS'; blocks: Block[] }; // Renamed from SYNC_FROM_SIDEBAR
+
+const blockReducer = (state: Block[], action: BlockAction): Block[] => {
+  switch (action.type) {
+    case 'UPDATE_BLOCK':
+      return state.map(block => 
+        block.id === action.blockId 
+          ? { ...block, ...action.updates }
+          : block
+      );
+    
+    case 'ADD_BLOCK': {
+      const newBlock: Block = {
+        id: Date.now().toString(),
+        type: action.blockType,
+        content: action.blockType === 'title' ? 'New Title' : 'New body text...',
+        tags: []
+      };
+      
+      if (action.afterId) {
+        const index = state.findIndex(b => b.id === action.afterId);
+        const newBlocks = [...state];
+        newBlocks.splice(index + 1, 0, newBlock);
+        return newBlocks;
+      } else {
+        return [...state, newBlock];
+      }
+    }
+    
+    case 'DELETE_BLOCK':
+      return state.filter(block => block.id !== action.blockId);
+    
+    case 'ADD_TAG':
+      return state.map(block =>
+        block.id === action.blockId
+          ? { ...block, tags: [...block.tags, action.tag] }
+          : block
+      );
+    
+    case 'REMOVE_TAG':
+      return state.map(block =>
+        block.id === action.blockId
+          ? { ...block, tags: block.tags.filter((_, i) => i !== action.tagIndex) }
+          : block
+      );
+    
+    case 'REORDER_BLOCKS':
+      return action.blocks;
+    
+    default:
+      return state;
+  }
+};
 
 interface Block {
   id: string;
@@ -16,7 +76,7 @@ interface Block {
 export default function App() {
   const [activeTab, setActiveTab] = useState('Main');
   const [title, setTitle] = useState('What to focus on right now: a massive hit.');
-  const [blocks, setBlocks] = useState<Block[]>([
+  const [blocks, dispatch] = useReducer(blockReducer, [
     {
       id: '1',
       type: 'title',
@@ -74,21 +134,9 @@ export default function App() {
     }
   };
 
-  // Handle blocks change from TextEditor
-  const handleBlocksChange = (newBlocks: Block[]) => {
-    setBlocks(newBlocks);
-  };
+  
 
-  // Handle block reorder from Sidebar
-  const handleBlockReorder = (reorderedBlocks: Block[]) => {
-    // Only update if the order actually changed to prevent loops
-    const currentOrder = blocks.map(b => b.id).join(',');
-    const newOrder = reorderedBlocks.map(b => b.id).join(',');
-    
-    if (currentOrder !== newOrder) {
-      setBlocks(reorderedBlocks);
-    }
-  };
+ 
 
   return (
     <div className="h-screen flex flex-col bg-gray-50">
@@ -113,7 +161,7 @@ export default function App() {
           <Sidebar 
             blocks={blocks}
             onBlockClick={handleBlockClick}
-            onBlockReorder={handleBlockReorder}
+            dispatch={dispatch}
             activeTab={activeTab}
             setActiveTab={setActiveTab}
           />
@@ -175,11 +223,11 @@ export default function App() {
               {/* Editor Content */}
               <div className="flex-1 overflow-auto p-8">
                 <div className="max-w-4xl mx-auto">
-                  <TextEditor 
-                    key="main-editor" // static key for animations to go smoother
-                    initialBlocks={blocks}
-                    onBlocksChange={handleBlocksChange}
-                  />
+                <TextEditor 
+                  key="main-editor"
+                  blocks={blocks}
+                  dispatch={dispatch}
+                />
                 </div>
               </div>
             </>
