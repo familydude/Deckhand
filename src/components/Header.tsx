@@ -42,8 +42,8 @@ export function Header({ activeTab, setActiveTab, title, setTitle }: HeaderProps
   onClick={() => formatText('bold')}
   className={`w-3 h-3 rounded-full flex items-center justify-center text-[6px] font-bold transition-all duration-200 ${
     hasTextSelection 
-      ? 'bg-gray-900 text-white hover:bg-black cursor-pointer transform hover:scale-110' 
-      : 'bg-gray-400 text-gray-200 cursor-not-allowed opacity-60'
+      ? 'bg-black text-white hover:bg-black cursor-pointer transform hover:scale-110' 
+      : 'bg-black text-gray-200 cursor-not-allowed opacity-60'
   }`}
   disabled={!hasTextSelection}
   whileHover={hasTextSelection ? { scale: 1.2 } : {}}
