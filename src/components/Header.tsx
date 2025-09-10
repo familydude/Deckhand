@@ -50,7 +50,7 @@ export function Header({ activeTab, setActiveTab, title, setTitle }: HeaderProps
   whileTap={hasTextSelection ? { scale: 1.1 } : {}}
   title={hasTextSelection ? "Apply bold formatting" : "Select text to apply formatting"}
 >
-  B
+   
 </motion.button>
 
 {/* Italic button */}
@@ -66,7 +66,7 @@ export function Header({ activeTab, setActiveTab, title, setTitle }: HeaderProps
   whileTap={hasTextSelection ? { scale: 1.1 } : {}}
   title={hasTextSelection ? "Apply italic formatting" : "Select text to apply formatting"}
 >
-  I
+   
 </motion.button>
         
         {/* Small separator */}
