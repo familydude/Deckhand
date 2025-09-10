@@ -40,17 +40,17 @@ export function Header({ activeTab, setActiveTab, title, setTitle }: HeaderProps
        {/* Bold button */}
 <motion.button
   onClick={() => formatText('bold')}
-  className={`w-3 h-3 rounded-full flex items-center justify-center text-[6px] font-bold transition-all duration-200 ${
+  className={`w-6 h-6 rounded flex items-center justify-center text-xs font-bold transition-all duration-200 ${
     hasTextSelection 
       ? 'bg-black text-white hover:bg-black cursor-pointer transform hover:scale-110' 
-      : 'bg-black text-gray-200 cursor-not-allowed opacity-60'
+      : 'bg-gray-300 text-gray-500 cursor-not-allowed opacity-60'
   }`}
   disabled={!hasTextSelection}
   whileHover={hasTextSelection ? { scale: 1.2 } : {}}
   whileTap={hasTextSelection ? { scale: 1.1 } : {}}
   title={hasTextSelection ? "Apply bold formatting" : "Select text to apply formatting"}
 >
-   
+  B
 </motion.button>
 
 {/* Italic button */}
@@ -66,7 +66,7 @@ export function Header({ activeTab, setActiveTab, title, setTitle }: HeaderProps
   whileTap={hasTextSelection ? { scale: 1.1 } : {}}
   title={hasTextSelection ? "Apply italic formatting" : "Select text to apply formatting"}
 >
-   
+   I
 </motion.button>
         
         {/* Small separator */}
