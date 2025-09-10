@@ -36,32 +36,38 @@ export function Header({ activeTab, setActiveTab, title, setTitle }: HeaderProps
     <div className="h-16 bg-gray-100 border-b border-gray-200 flex items-center justify-between px-6">
       {/* Window Controls - now functional as color buttons */}
       <div className="flex items-center gap-2">
-        <motion.button
-          onClick={() => formatText('bold')}
-          className={`w-3 h-3 rounded-full flex items-center justify-center text-[6px] font-bold transition-all duration-200 ${
-            hasTextSelection 
-              ? 'bg-gray-900 text-white hover:bg-black cursor-pointer transform hover:scale-110' 
-              : 'bg-gray-400 text-gray-200 cursor-not-allowed opacity-60'
-          }`}
-          disabled={!hasTextSelection}
-          whileHover={hasTextSelection ? { scale: 1.2 } : {}}
-          whileTap={hasTextSelection ? { scale: 1.1 } : {}}
-          title={hasTextSelection ? "Apply bold" : "Select text to apply bold"}
-          >B
-        </motion.button>
-        
-         <motion.button
-          onClick={() => formatText('italic')}
-          className={`w-3 h-3 rounded-full flex items-center justify-center text-[6px] font-serif italic transition-all duration-200 ${
-            hasTextSelection 
-              ? 'bg-white border border-gray-900 text-gray-900 hover:bg-gray-50 cursor-pointer transform hover:scale-110' 
-              : 'bg-gray-100 border border-gray-300 text-gray-400 cursor-not-allowed opacity-60'
-          }`}
-          disabled={!hasTextSelection}
-          whileHover={hasTextSelection ? { scale: 1.2 } : {}}
-          whileTap={hasTextSelection ? { scale: 1.1 } : {}}
-          title={hasTextSelection ? "Apply italic" : "Select text to italic"}
-       >I</motion.button>
+
+       {/* Bold button */}
+<motion.button
+  onClick={() => formatText('bold')}
+  className={`w-3 h-3 rounded-full flex items-center justify-center text-[6px] font-bold transition-all duration-200 ${
+    hasTextSelection 
+      ? 'bg-gray-900 text-white hover:bg-black cursor-pointer transform hover:scale-110' 
+      : 'bg-gray-400 text-gray-200 cursor-not-allowed opacity-60'
+  }`}
+  disabled={!hasTextSelection}
+  whileHover={hasTextSelection ? { scale: 1.2 } : {}}
+  whileTap={hasTextSelection ? { scale: 1.1 } : {}}
+  title={hasTextSelection ? "Apply bold formatting" : "Select text to apply formatting"}
+>
+  B
+</motion.button>
+
+{/* Italic button */}
+<motion.button
+  onClick={() => formatText('italic')}
+  className={`w-3 h-3 rounded-full flex items-center justify-center text-[6px] font-serif italic transition-all duration-200 ${
+    hasTextSelection 
+      ? 'bg-white border border-gray-900 text-gray-900 hover:bg-gray-50 cursor-pointer transform hover:scale-110' 
+      : 'bg-gray-100 border border-gray-300 text-gray-400 cursor-not-allowed opacity-60'
+  }`}
+  disabled={!hasTextSelection}
+  whileHover={hasTextSelection ? { scale: 1.2 } : {}}
+  whileTap={hasTextSelection ? { scale: 1.1 } : {}}
+  title={hasTextSelection ? "Apply italic formatting" : "Select text to apply formatting"}
+>
+  I
+</motion.button>
         
         {/* Small separator */}
         <div className="w-1"></div>
