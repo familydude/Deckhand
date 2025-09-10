@@ -157,53 +157,7 @@ export function TextEditor({ blocks, dispatch, onTextSelection }: TextEditorProp
 
   return (
     <div className="flex-1 relative">
-      {/* Floating formatting toolbar */}
-      <AnimatePresence>
-        {hasTextSelection && (
-          <motion.div
-            initial={{ opacity: 0, y: 10, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 10, scale: 0.95 }}
-            className="fixed z-50 bg-white border border-gray-200 rounded-lg shadow-lg p-2 flex gap-1"
-            style={{
-              top: '120px',
-              left: '50%',
-              transform: 'translateX(-50%)'
-            }}
-          >
-            <button
-              onClick={toggleBold}
-              className="p-2 hover:bg-gray-100 rounded transition-colors"
-              title="Bold"
-            >
-              <Bold className="w-4 h-4" />
-            </button>
-            <button
-              onClick={toggleItalic}
-              className="p-2 hover:bg-gray-100 rounded transition-colors"
-              title="Italic"
-            >
-              <Italic className="w-4 h-4" />
-            </button>
-            <div className="w-px bg-gray-200 mx-1"></div>
-            <button
-              onClick={() => applyColor('#3B82F6')}
-              className="w-8 h-8 rounded bg-blue-500 hover:bg-blue-600 transition-colors"
-              title="Blue"
-            />
-            <button
-              onClick={() => applyColor('#10B981')}
-              className="w-8 h-8 rounded bg-green-500 hover:bg-green-600 transition-colors"
-              title="Green"
-            />
-            <button
-              onClick={() => applyColor('#EF4444')}
-              className="w-8 h-8 rounded bg-red-500 hover:bg-red-600 transition-colors"
-              title="Red"
-            />
-          </motion.div>
-        )}
-      </AnimatePresence>
+ 
 
       <AnimatePresence>
         {blocks.map((block, index) => {
