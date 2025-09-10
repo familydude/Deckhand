@@ -149,15 +149,15 @@ export default function App() {
       
       <div className="flex-1 flex overflow-hidden">
         {/* Sidebar */}
-        <motion.div
-          initial={false}
-          animate={{
-            x: sidebarVisible ? 0 : -280,
-            opacity: sidebarVisible ? 1 : 0
-          }}
-          transition={{ type: "spring", stiffness: 300, damping: 30 }}
-          className="relative z-10"
-        >
+       <motion.div
+  initial={false}
+  animate={{
+    x: sidebarVisible ? 0 : -280, // or use dynamic sidebarWidth
+    opacity: sidebarVisible ? 1 : 0
+  }}
+  transition={{ type: "spring", stiffness: 300, damping: 30 }}
+  className="relative z-10 h-full" // Add h-full here
+>
           <Sidebar 
             blocks={blocks}
             onBlockClick={handleBlockClick}
