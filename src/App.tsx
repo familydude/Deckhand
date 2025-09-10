@@ -223,11 +223,15 @@ export default function App() {
               {/* Editor Content */}
               <div className="flex-1 overflow-auto p-8">
                 <div className="max-w-4xl mx-auto">
-                <TextEditor 
-                  key="main-editor"
-                  blocks={blocks}
-                  dispatch={dispatch}
-                />
+                  <TextEditor 
+                    key="main-editor"
+                    blocks={blocks}
+                    dispatch={dispatch}
+                    onTextSelection={(hasSelection) => {
+                      // This callback allows the TextEditor to communicate selection state
+                      // to other components if needed - you can expand this later
+                    }}
+                  />
                 </div>
               </div>
             </>
