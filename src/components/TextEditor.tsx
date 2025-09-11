@@ -157,13 +157,21 @@ export function TextEditor({ blocks, dispatch, focusedBlockId, setFocusedBlockId
     dispatch({ type: 'REMOVE_TAG', blockId, tagIndex });
   };
 
-  const Info = () => (
+  const Info: React.FC<{ isActive?: boolean }> = ({ isActive = false }) => (
     <div className="relative shrink-0 size-8">
-      <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 32 32">
-        <g>
-          <path d={svgPaths.p1ab63f00} stroke="var(--stroke-0, #1E1E1E)" strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" />
-        </g>
-      </svg>
+      {isActive ? (
+        // Arrow icon for focused block (matches focus banner)
+        <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center">
+          <ArrowRight className="w-4 h-4 text-gray-600" />
+        </div>
+      ) : (
+        // Regular info icon for non-focused blocks
+        <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 32 32">
+          <g>
+            <path d={svgPaths.p1ab63f00} stroke="var(--stroke-0, #1E1E1E)" strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" />
+          </g>
+        </svg>
+      )}
     </div>
   );
 
@@ -209,7 +217,7 @@ export function TextEditor({ blocks, dispatch, focusedBlockId, setFocusedBlockId
                 <GripVertical className="w-5 h-5 text-gray-400 cursor-grab" />
               </div>
 
-              <Info />
+              <Info isActive={block.id === focusedBlockId} />
               
               <div className="basis-0 content-stretch flex flex-col gap-4 grow items-start justify-start min-h-px min-w-40 relative shrink-0">
                 {/* Editable content or Preview */}
