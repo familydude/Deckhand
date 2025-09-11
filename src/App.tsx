@@ -1,5 +1,5 @@
 import { useState, useRef, useReducer } from 'react';
-import { motion , AnimatePresence} from 'motion/react';
+import { motion, AnimatePresence } from 'motion/react';
 import { ArrowRight } from 'lucide-react';
 import { Header } from './components/Header';
 import { Sidebar } from './components/Sidebar';
@@ -20,9 +20,12 @@ export type BlockAction =
   | { type: 'DELETE_BLOCK'; blockId: string }
   | { type: 'ADD_TAG'; blockId: string; tag: string }
   | { type: 'REMOVE_TAG'; blockId: string; tagIndex: number }
-  | { type: 'REORDER_BLOCKS'; blocks: Block[] };
+  | { type: 'REORDER_BLOCKS'; blocks: Block[] }
+  | { type: 'LOAD_DOCUMENT'; blocks: Block[] };
 
 const blockReducer = (state: Block[], action: BlockAction): Block[] => {
+  console.log('Reducer called with action:', action.type, action); // Debug log
+  
   switch (action.type) {
     case 'UPDATE_BLOCK':
       return state.map(block => 
@@ -68,9 +71,15 @@ const blockReducer = (state: Block[], action: BlockAction): Block[] => {
       );
     
     case 'REORDER_BLOCKS':
+      console.log('REORDER_BLOCKS - reordering to:', action.blocks); // Debug log
+      return action.blocks;
+    
+    case 'LOAD_DOCUMENT':
+      console.log('LOAD_DOCUMENT - replacing blocks with:', action.blocks); // Debug log
       return action.blocks;
     
     default:
+      console.log('Unknown action type:', action); // Debug log
       return state;
   }
 };
@@ -173,6 +182,11 @@ export default function App() {
       <Header 
         activeTab={activeTab} 
         setActiveTab={setActiveTab}
+        title={title}
+        setTitle={setTitle}
+        blocks={blocks}
+        dispatch={dispatch}
+        setFocusedBlockId={setFocusedBlockId}
       />
       
       <div className="flex-1 flex overflow-hidden">
