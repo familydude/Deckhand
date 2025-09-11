@@ -1,13 +1,10 @@
 import { useState, useRef } from 'react';
 import { BlockAction } from '../App';
+import { marked } from 'marked';
 
 import { motion, AnimatePresence } from 'motion/react';
 import { Plus, X, GripVertical, Type, AlignLeft, Hash, ArrowRight } from 'lucide-react';
 import svgPaths from "../imports/svg-gsfv4q9vrt";
-
-
-
-
 
 interface Block {
   id: string;
@@ -16,14 +13,12 @@ interface Block {
   tags: string[];
 }
 
-
 interface TextEditorProps {
   blocks: Block[];
   dispatch: React.Dispatch<BlockAction>;
 }
 
 export function TextEditor({ blocks, dispatch }: TextEditorProps) {
-   
   const [hoveredBlock, setHoveredBlock] = useState<string | null>(null);
   const [editingBlock, setEditingBlock] = useState<string | null>(null);
   const [draggedBlock, setDraggedBlock] = useState<string | null>(null);
@@ -38,21 +33,79 @@ export function TextEditor({ blocks, dispatch }: TextEditorProps) {
     textarea.style.height = textarea.scrollHeight + 'px';
   };
 
- 
+  // Configure marked for rendering markdown
+  const renderMarkdown = (content: string) => {
+    try {
+      // For title blocks or single lines, render inline
+      const isTitle = content.trim().indexOf('\n') === -1;
+      if (isTitle) {
+        return marked.parseInline(content);
+      }
+      return marked.parse(content);
+    } catch (error) {
+      console.error('Markdown parsing error:', error);
+      return content; // Fallback to plain text
+    }
+  };
 
- 
-
-const addBlock = (afterId?: string, type: 'title' | 'body' = 'body') => {
-  const newBlockId = Date.now().toString();
-  setLastAddedBlockId(newBlockId);
-  
-  dispatch({ type: 'ADD_BLOCK', afterId, blockType: type });
-  setEditingBlock(newBlockId);
-
-  // Keep the scrolling logic the same
- 
+  // Handle markdown shortcuts
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>, blockId: string) => {
+    if (e.ctrlKey || e.metaKey) {
+      const textarea = e.target as HTMLTextAreaElement;
+      const start = textarea.selectionStart;
+      const end = textarea.selectionEnd;
+      const selectedText = textarea.value.substring(start, end);
+      
+      let newText = '';
+      let newCursorPos = end;
+      
+      switch (e.key) {
+        case 'b': // Bold
+          e.preventDefault();
+          if (selectedText) {
+            newText = textarea.value.substring(0, start) + 
+                     `**${selectedText}**` + 
+                     textarea.value.substring(end);
+            newCursorPos = end + 4; // Move cursor after **text**
+          }
+          break;
+          
+        case 'i': // Italic
+          e.preventDefault();
+          if (selectedText) {
+            newText = textarea.value.substring(0, start) + 
+                     `*${selectedText}*` + 
+                     textarea.value.substring(end);
+            newCursorPos = end + 2;
+          }
+          break;
+      }
+      
+      if (newText) {
+        updateBlock(blockId, { content: newText });
+        // Restore cursor position after React re-render
+        setTimeout(() => {
+          textarea.focus();
+          textarea.setSelectionRange(newCursorPos, newCursorPos);
+        }, 0);
+      }
+    }
     
-    // Scroll to the new block after DOM update
+    // Handle existing escape key
+    if (e.key === 'Escape') {
+      const target = e.target as HTMLElement;
+      if (target?.blur) target.blur();
+    }
+  };
+
+  const addBlock = (afterId?: string, type: 'title' | 'body' = 'body') => {
+    const newBlockId = Date.now().toString();
+    setLastAddedBlockId(newBlockId);
+    
+    dispatch({ type: 'ADD_BLOCK', afterId, blockType: type });
+    setEditingBlock(newBlockId);
+
+    // Keep the scrolling logic the same
     setTimeout(() => {
       const blockElement = document.getElementById(`block-${newBlockId}`);
       if (blockElement) {
@@ -64,45 +117,33 @@ const addBlock = (afterId?: string, type: 'title' | 'body' = 'body') => {
     }, 100);
     
     // Clear the lastAddedBlockId after animations complete
-   setTimeout(() => {
-    const blockElement = document.getElementById(`block-${newBlockId}`);
-    if (blockElement) {
-      blockElement.scrollIntoView({ 
-        behavior: 'smooth', 
-        block: 'center' 
-      });
-    }
-  }, 100);
-  
-  setTimeout(() => {
-    setLastAddedBlockId(null);
-  }, 800);
-};
+    setTimeout(() => {
+      setLastAddedBlockId(null);
+    }, 800);
+  };
 
- const updateBlock = (id: string, updates: Partial<Block>) => {
+  const updateBlock = (id: string, updates: Partial<Block>) => {
     dispatch({ type: 'UPDATE_BLOCK', blockId: id, updates });
-};
+  };
 
- const deleteBlock = (id: string) => {
-  setDeletingBlockId(id);
-  
-  setTimeout(() => {
-    dispatch({ type: 'DELETE_BLOCK', blockId: id });
-    setDeletingBlockId(null);
-  }, 300);
-};
+  const deleteBlock = (id: string) => {
+    setDeletingBlockId(id);
+    
+    setTimeout(() => {
+      dispatch({ type: 'DELETE_BLOCK', blockId: id });
+      setDeletingBlockId(null);
+    }, 300);
+  };
 
-const addTag = (blockId: string, tag: string) => {
-  if (tag.trim()) {
-    dispatch({ type: 'ADD_TAG', blockId, tag: tag.trim() });
-  }
-};
+  const addTag = (blockId: string, tag: string) => {
+    if (tag.trim()) {
+      dispatch({ type: 'ADD_TAG', blockId, tag: tag.trim() });
+    }
+  };
 
-const removeTag = (blockId: string, tagIndex: number) => {
-  dispatch({ type: 'REMOVE_TAG', blockId, tagIndex });
-};
-
- 
+  const removeTag = (blockId: string, tagIndex: number) => {
+    dispatch({ type: 'REMOVE_TAG', blockId, tagIndex });
+  };
 
   const Info = () => (
     <div className="relative shrink-0 size-8">
@@ -147,7 +188,6 @@ const removeTag = (blockId: string, tagIndex: number) => {
               onMouseLeave={() => setHoveredBlock(null)}
             >
 
-
             {/* Block container */}
             <motion.div
               className="bg-white box-border content-start flex flex-wrap gap-6 items-start justify-start min-w-60 p-6 rounded-lg w-full border border-gray-200 shadow-sm"
@@ -160,32 +200,44 @@ const removeTag = (blockId: string, tagIndex: number) => {
               <Info />
               
               <div className="basis-0 content-stretch flex flex-col gap-4 grow items-start justify-start min-h-px min-w-40 relative shrink-0">
-                {/* Editable content */}
-                <textarea
-                  ref={(textarea) => {
-                    if (textarea) {
-                      autoResizeTextarea(textarea);
-                    }
-                  }}
-                  value={block.content}
-                  onChange={(e) => {
-                    updateBlock(block.id, { content: e.target.value });
-                    autoResizeTextarea(e.target);
-                  }}
-                  onFocus={() => setEditingBlock(block.id)}
-                  onBlur={() => setEditingBlock(null)}
-                  onKeyDown={(e) => {
-                    const target = e.target as HTMLElement;
-                      if (e.key === 'Escape' && target?.blur) target.blur();
-                      //if (e.key === 'Enter' && e.metaKey && target?.blur) target.blur();
-                  }}
-                  className={`w-full bg-transparent border-none outline-none resize-none overflow-hidden cursor-text ${
-                    block.type === 'title' 
-                      ? 'text-2xl font-semibold text-gray-900 tracking-tight' 
-                      : 'text-base text-gray-600 leading-relaxed'
-                  }`}
-                  style={{ minHeight: block.type === 'title' ? '2.25rem' : '1.5rem' }}
-                />
+                {/* Editable content or Preview */}
+                {editingBlock === block.id ? (
+                  <textarea
+                    ref={(textarea) => {
+                      if (textarea) {
+                        autoResizeTextarea(textarea);
+                        // Auto-focus when entering edit mode
+                        setTimeout(() => textarea.focus(), 0);
+                      }
+                    }}
+                    value={block.content}
+                    onChange={(e) => {
+                      updateBlock(block.id, { content: e.target.value });
+                      autoResizeTextarea(e.target);
+                    }}
+                    onFocus={() => setEditingBlock(block.id)}
+                    onBlur={() => setEditingBlock(null)}
+                    onKeyDown={(e) => handleKeyDown(e, block.id)}
+                    className={`w-full bg-transparent border-none outline-none resize-none overflow-hidden cursor-text ${
+                      block.type === 'title' 
+                        ? 'text-2xl font-semibold text-gray-900 tracking-tight' 
+                        : 'text-base text-gray-600 leading-relaxed'
+                    }`}
+                    style={{ minHeight: block.type === 'title' ? '2.25rem' : '1.5rem' }}
+                  />
+                ) : (
+                  <div
+                    onClick={() => setEditingBlock(block.id)}
+                    className={`w-full cursor-text min-h-[1.5rem] ${
+                      block.type === 'title' 
+                        ? 'text-2xl font-semibold text-gray-900 tracking-tight' 
+                        : 'text-base text-gray-600 leading-relaxed'
+                    }`}
+                    dangerouslySetInnerHTML={{ 
+                      __html: renderMarkdown(block.content) 
+                    }}
+                  />
+                )}
 
                 {/* Tags */}
                 <div className="flex flex-wrap gap-2 items-center">
