@@ -12,7 +12,7 @@ export type BlockAction =
   | { type: 'DELETE_BLOCK'; blockId: string }
   | { type: 'ADD_TAG'; blockId: string; tag: string }
   | { type: 'REMOVE_TAG'; blockId: string; tagIndex: number }
-  | { type: 'REORDER_BLOCKS'; blocks: Block[] }; // Renamed from SYNC_FROM_SIDEBAR
+  | { type: 'REORDER_BLOCKS'; blocks: Block[] };
 
 const blockReducer = (state: Block[], action: BlockAction): Block[] => {
   switch (action.type) {
@@ -75,7 +75,8 @@ interface Block {
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('Main');
-  const [title, setTitle] = useState('What to focus on right now: a massive hit.');
+  const [title, setTitle] = useState('Document Title');
+  const [focus, setFocus] = useState('What to focus on right now: a massive hit.');
   const [blocks, dispatch] = useReducer(blockReducer, [
     {
       id: '1',
@@ -134,36 +135,32 @@ export default function App() {
     }
   };
 
-  
-
- 
-
   return (
     <div className="h-screen flex flex-col bg-gray-50">
       <Header 
         activeTab={activeTab} 
         setActiveTab={setActiveTab}
-        title={title}
-        setTitle={setTitle}
       />
       
       <div className="flex-1 flex overflow-hidden">
         {/* Sidebar */}
-       <motion.div
-  initial={false}
-  animate={{
-    x: sidebarVisible ? 0 : -280, // or use dynamic sidebarWidth
-    opacity: sidebarVisible ? 1 : 0
-  }}
-  transition={{ type: "spring", stiffness: 300, damping: 30 }}
-  className="relative z-10 h-full" // Add h-full here
->
+        <motion.div
+          initial={false}
+          animate={{
+            x: sidebarVisible ? 0 : -280,
+            opacity: sidebarVisible ? 1 : 0
+          }}
+          transition={{ type: "spring", stiffness: 300, damping: 30 }}
+          className="relative z-10 h-full"
+        >
           <Sidebar 
             blocks={blocks}
             onBlockClick={handleBlockClick}
             dispatch={dispatch}
             activeTab={activeTab}
             setActiveTab={setActiveTab}
+            title={title}
+            setTitle={setTitle}
           />
         </motion.div>
 
@@ -179,7 +176,7 @@ export default function App() {
             <Settings />
           ) : (
             <>
-              {/* Title Section */}
+              {/* Focus Banner */}
               <div className="px-8 py-6 bg-white border-b border-gray-200">
                 <div className="flex items-center gap-4">
                   <motion.div
@@ -192,30 +189,30 @@ export default function App() {
                   
                   <motion.h1 
                     className="text-2xl font-semibold text-gray-900 flex-1 cursor-text"
-                    onClick={() => {
+                    onClick={(e) => {
                       const input = document.createElement('input');
-                      input.value = title;
+                      input.value = focus;
                       input.className = 'text-2xl font-semibold text-gray-900 bg-transparent border-none outline-none w-full';
                       input.onblur = () => {
-                        setTitle(input.value || title);
-                        if (titleElement){
-                           input.replaceWith(titleElement);
+                        setFocus(input.value || focus);
+                        if (focusElement) {
+                           input.replaceWith(focusElement);
                         }
                       };
                       input.onkeydown = (e) => {
                         if (e.key === 'Enter') input.blur();
                         if (e.key === 'Escape') {
-                          input.value = title;
+                          input.value = focus;
                           input.blur();
                         }
                       };
-                      const titleElement = document.querySelector('h1');
-                      titleElement?.replaceWith(input);
+                      const focusElement = e.target as HTMLElement;
+                      focusElement.replaceWith(input);
                       input.focus();
                     }}
                     whileHover={{ color: '#3B82F6' }}
                   >
-                    {title}
+                    {focus}
                   </motion.h1>
                 </div>
               </div>
@@ -223,11 +220,11 @@ export default function App() {
               {/* Editor Content */}
               <div className="flex-1 overflow-auto p-8">
                 <div className="max-w-4xl mx-auto">
-                <TextEditor 
-                  key="main-editor"
-                  blocks={blocks}
-                  dispatch={dispatch}
-                />
+                  <TextEditor 
+                    key="main-editor"
+                    blocks={blocks}
+                    dispatch={dispatch}
+                  />
                 </div>
               </div>
             </>

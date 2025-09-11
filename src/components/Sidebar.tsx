@@ -17,9 +17,11 @@ interface SidebarProps {
   dispatch: React.Dispatch<BlockAction>;
   activeTab: string;
   setActiveTab: (tab: string) => void;
+  title: string;
+  setTitle: (title: string) => void;
 }
 
-export function Sidebar({ blocks, onBlockClick, dispatch, activeTab, setActiveTab }: SidebarProps) {
+export function Sidebar({ blocks, onBlockClick, dispatch, activeTab, setActiveTab, title, setTitle }: SidebarProps) {
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   
@@ -34,7 +36,32 @@ export function Sidebar({ blocks, onBlockClick, dispatch, activeTab, setActiveTa
             {/* Menu Header - Fixed */}
             <div className="px-4 py-2 flex-shrink-0">
               <div className="text-sm text-gray-500">Document Structure</div>
-              <div className="font-semibold text-gray-900">Document Structure</div>
+              <div 
+                className="font-semibold text-gray-900 cursor-text"
+                onClick={(e) => {
+                  const input = document.createElement('input');
+                  input.value = title;
+                  input.className = 'font-semibold text-gray-900 bg-transparent border-none outline-none w-full';
+                  input.onblur = () => {
+                    setTitle(input.value || title);
+                    if (titleElement) {
+                      input.replaceWith(titleElement);
+                    }
+                  };
+                  input.onkeydown = (e) => {
+                    if (e.key === 'Enter') input.blur();
+                    if (e.key === 'Escape') {
+                      input.value = title;
+                      input.blur();
+                    }
+                  };
+                  const titleElement = e.target as HTMLElement;
+                  titleElement.replaceWith(input);
+                  input.focus();
+                }}
+              >
+                {title}
+              </div>
             </div>
             
             {/* Separator - Fixed */}
