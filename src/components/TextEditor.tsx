@@ -11,14 +11,18 @@ interface Block {
   type: 'title' | 'body';
   content: string;
   tags: string[];
+  focusMessage: string;
 }
 
 interface TextEditorProps {
   blocks: Block[];
   dispatch: React.Dispatch<BlockAction>;
+  focusedBlockId: string | null;
+  setFocusedBlockId: React.Dispatch<React.SetStateAction<string | null>>;
+  focusPrompts: string[];
 }
 
-export function TextEditor({ blocks, dispatch }: TextEditorProps) {
+export function TextEditor({ blocks, dispatch, focusedBlockId, setFocusedBlockId, focusPrompts }: TextEditorProps) {
   const [hoveredBlock, setHoveredBlock] = useState<string | null>(null);
   const [editingBlock, setEditingBlock] = useState<string | null>(null);
   const [draggedBlock, setDraggedBlock] = useState<string | null>(null);
@@ -102,7 +106,15 @@ export function TextEditor({ blocks, dispatch }: TextEditorProps) {
     const newBlockId = Date.now().toString();
     setLastAddedBlockId(newBlockId);
     
-    dispatch({ type: 'ADD_BLOCK', afterId, blockType: type });
+    // Generate random focus message using the passed focusPrompts
+    const randomFocusMessage = focusPrompts[Math.floor(Math.random() * focusPrompts.length)];
+    
+    dispatch({ 
+      type: 'ADD_BLOCK', 
+      afterId, 
+      blockType: type, 
+      focusMessage: randomFocusMessage 
+    });
     setEditingBlock(newBlockId);
 
     // Keep the scrolling logic the same
@@ -215,8 +227,14 @@ export function TextEditor({ blocks, dispatch }: TextEditorProps) {
                       updateBlock(block.id, { content: e.target.value });
                       autoResizeTextarea(e.target);
                     }}
-                    onFocus={() => setEditingBlock(block.id)}
-                    onBlur={() => setEditingBlock(null)}
+                    onFocus={() => {
+                      setEditingBlock(block.id);
+                      setFocusedBlockId(block.id);
+                    }}
+                    onBlur={() => {
+                      setEditingBlock(null);
+                      // Don't clear focused block on blur - keep focus message visible
+                    }}
                     onKeyDown={(e) => handleKeyDown(e, block.id)}
                     className={`w-full bg-transparent border-none outline-none resize-none overflow-hidden cursor-text ${
                       block.type === 'title' 
@@ -227,7 +245,10 @@ export function TextEditor({ blocks, dispatch }: TextEditorProps) {
                   />
                 ) : (
                   <div
-                    onClick={() => setEditingBlock(block.id)}
+                    onClick={() => {
+                      setEditingBlock(block.id);
+                      setFocusedBlockId(block.id);
+                    }}
                     className={`w-full cursor-text min-h-[1.5rem] ${
                       block.type === 'title' 
                         ? 'text-2xl font-semibold text-gray-900 tracking-tight' 

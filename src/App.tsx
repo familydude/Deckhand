@@ -6,9 +6,17 @@ import { Sidebar } from './components/Sidebar';
 import { TextEditor } from './components/TextEditor';
 import { Settings } from './components/Settings';
 
+interface Block {
+  id: string;
+  type: 'title' | 'body';
+  content: string;
+  tags: string[];
+  focusMessage: string;
+}
+
 export type BlockAction = 
   | { type: 'UPDATE_BLOCK'; blockId: string; updates: Partial<Block> }
-  | { type: 'ADD_BLOCK'; afterId?: string; blockType: 'title' | 'body' }
+  | { type: 'ADD_BLOCK'; afterId?: string; blockType: 'title' | 'body'; focusMessage: string }
   | { type: 'DELETE_BLOCK'; blockId: string }
   | { type: 'ADD_TAG'; blockId: string; tag: string }
   | { type: 'REMOVE_TAG'; blockId: string; tagIndex: number }
@@ -28,7 +36,8 @@ const blockReducer = (state: Block[], action: BlockAction): Block[] => {
         id: Date.now().toString(),
         type: action.blockType,
         content: action.blockType === 'title' ? 'New Title' : 'New body text...',
-        tags: []
+        tags: [],
+        focusMessage: action.focusMessage
       };
       
       if (action.afterId) {
@@ -66,37 +75,61 @@ const blockReducer = (state: Block[], action: BlockAction): Block[] => {
   }
 };
 
-interface Block {
-  id: string;
-  type: 'title' | 'body';
-  content: string;
-  tags: string[];
-}
-
 export default function App() {
   const [activeTab, setActiveTab] = useState('Main');
   const [title, setTitle] = useState('Document Title');
-  const [focus, setFocus] = useState('What to focus on right now: a massive hit.');
+  const [focusedBlockId, setFocusedBlockId] = useState<string | null>(null);
+  
+  // Random focus prompts
+  const focusPrompts = [
+    "Why does this matter?",
+    "What's the real point here?", 
+    "Who is this actually for?",
+    "What am I really trying to say?",
+    "What's the one thing that matters most?",
+    "How does this move me forward?",
+    "What would make this worth reading?",
+    "Why should anyone care?",
+    "What's my actual goal here?",
+    "What's the hard truth I'm avoiding?"
+  ];
+  
   const [blocks, dispatch] = useReducer(blockReducer, [
     {
       id: '1',
       type: 'title',
       content: 'Title',
-      tags: ['Tag']
+      tags: ['Tag'],
+      focusMessage: focusPrompts[Math.floor(Math.random() * focusPrompts.length)]
     },
     {
       id: '2',
       type: 'body',
       content: "Body text for whatever you'd like to say. Add main takeaway points, quotes, anecdotes, or even a very very short story. Body text for whatever you'd like to say. Add main takeaway points. Body text for whatever you'd like to say. Add main takeaway points",
-      tags: ['Tag']
+      tags: ['Tag'],
+      focusMessage: focusPrompts[Math.floor(Math.random() * focusPrompts.length)]
     },
     {
       id: '3',
       type: 'body',
       content: "Body text for whatever you'd like to say. Add main takeaway points, quotes, anecdotes, or even a very very short story.",
-      tags: ['Tag']
+      tags: ['Tag'],
+      focusMessage: focusPrompts[Math.floor(Math.random() * focusPrompts.length)]
     }
   ]);
+  
+  // Get current focus message
+  const getCurrentFocus = () => {
+    if (!focusedBlockId) return "Focus messages appear here";
+    const focusedBlock = blocks.find(block => block.id === focusedBlockId);
+    return focusedBlock?.focusMessage || "Focus messages appear here";
+  };
+  
+  // Truncate focus message for display
+  const truncateFocus = (message: string, maxLength: number = 80) => {
+    if (message.length <= maxLength) return message;
+    return message.substring(0, maxLength) + '...';
+  };
 
   const [sidebarVisible, setSidebarVisible] = useState(true);
   const mainRef = useRef<HTMLDivElement>(null);
@@ -188,13 +221,22 @@ export default function App() {
                   </motion.div>
                   
                   <motion.h1 
-                    className="text-2xl font-semibold text-gray-900 flex-1 cursor-text"
+                    className="text-2xl font-semibold text-gray-900 flex-1 cursor-text truncate"
                     onClick={(e) => {
+                      if (!focusedBlockId) return; // Can't edit if no block is focused
+                      
+                      const focusedBlock = blocks.find(block => block.id === focusedBlockId);
+                      if (!focusedBlock) return;
+                      
                       const input = document.createElement('input');
-                      input.value = focus;
+                      input.value = focusedBlock.focusMessage;
                       input.className = 'text-2xl font-semibold text-gray-900 bg-transparent border-none outline-none w-full';
                       input.onblur = () => {
-                        setFocus(input.value || focus);
+                        dispatch({ 
+                          type: 'UPDATE_BLOCK', 
+                          blockId: focusedBlockId, 
+                          updates: { focusMessage: input.value || focusedBlock.focusMessage }
+                        });
                         if (focusElement) {
                            input.replaceWith(focusElement);
                         }
@@ -202,7 +244,7 @@ export default function App() {
                       input.onkeydown = (e) => {
                         if (e.key === 'Enter') input.blur();
                         if (e.key === 'Escape') {
-                          input.value = focus;
+                          input.value = focusedBlock.focusMessage;
                           input.blur();
                         }
                       };
@@ -212,7 +254,7 @@ export default function App() {
                     }}
                     whileHover={{ color: '#3B82F6' }}
                   >
-                    {focus}
+                    {truncateFocus(getCurrentFocus())}
                   </motion.h1>
                 </div>
               </div>
@@ -224,6 +266,9 @@ export default function App() {
                     key="main-editor"
                     blocks={blocks}
                     dispatch={dispatch}
+                    focusedBlockId={focusedBlockId}
+                    setFocusedBlockId={setFocusedBlockId}
+                    focusPrompts={focusPrompts}
                   />
                 </div>
               </div>

@@ -3,11 +3,9 @@ import { motion } from 'motion/react';
 interface HeaderProps {
   activeTab: string;
   setActiveTab: (tab: string) => void;
-  title: string;
-  setTitle: (title: string) => void;
 }
 
-export function Header({ activeTab, setActiveTab, title, setTitle }: HeaderProps) {
+export function Header({ activeTab, setActiveTab }: HeaderProps) {
   const tabs = ['Main', 'Later', 'Notes', 'Theme', 'Settings', 'Board'];
 
   return (
