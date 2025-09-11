@@ -1,5 +1,5 @@
 import { useState, useRef, useReducer } from 'react';
-import { motion } from 'motion/react';
+import { motion , AnimatePresence} from 'motion/react';
 import { ArrowRight } from 'lucide-react';
 import { Header } from './components/Header';
 import { Sidebar } from './components/Sidebar';
@@ -220,42 +220,54 @@ export default function App() {
                     <ArrowRight className="w-6 h-6 text-gray-600" />
                   </motion.div>
                   
-                  <motion.h1 
-                    className="text-2xl font-semibold text-gray-900 flex-1 cursor-text truncate"
-                    onClick={(e) => {
-                      if (!focusedBlockId) return; // Can't edit if no block is focused
-                      
-                      const focusedBlock = blocks.find(block => block.id === focusedBlockId);
-                      if (!focusedBlock) return;
-                      
-                      const input = document.createElement('input');
-                      input.value = focusedBlock.focusMessage;
-                      input.className = 'text-2xl font-semibold text-gray-900 bg-transparent border-none outline-none w-full';
-                      input.onblur = () => {
-                        dispatch({ 
-                          type: 'UPDATE_BLOCK', 
-                          blockId: focusedBlockId, 
-                          updates: { focusMessage: input.value || focusedBlock.focusMessage }
-                        });
-                        if (focusElement) {
-                           input.replaceWith(focusElement);
-                        }
-                      };
-                      input.onkeydown = (e) => {
-                        if (e.key === 'Enter') input.blur();
-                        if (e.key === 'Escape') {
+                  <div className="flex-1 min-h-[2.5rem] flex items-center">
+                    <AnimatePresence mode="wait">
+                      <motion.h1 
+                        key={focusedBlockId || "default"} // Key changes when focused block changes
+                        initial={{ opacity: 0, y: -5 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: 5 }}
+                        transition={{ 
+                          duration: 0.2,
+                          ease: "easeInOut"
+                        }}
+                        className="text-2xl font-semibold text-gray-900 cursor-text truncate w-full"
+                        onClick={(e) => {
+                          if (!focusedBlockId) return; // Can't edit if no block is focused
+                          
+                          const focusedBlock = blocks.find(block => block.id === focusedBlockId);
+                          if (!focusedBlock) return;
+                          
+                          const input = document.createElement('input');
                           input.value = focusedBlock.focusMessage;
-                          input.blur();
-                        }
-                      };
-                      const focusElement = e.target as HTMLElement;
-                      focusElement.replaceWith(input);
-                      input.focus();
-                    }}
-                    whileHover={{ color: '#3B82F6' }}
-                  >
-                    {truncateFocus(getCurrentFocus())}
-                  </motion.h1>
+                          input.className = 'text-2xl font-semibold text-gray-900 bg-transparent border-none outline-none w-full';
+                          input.onblur = () => {
+                            dispatch({ 
+                              type: 'UPDATE_BLOCK', 
+                              blockId: focusedBlockId, 
+                              updates: { focusMessage: input.value || focusedBlock.focusMessage }
+                            });
+                            if (focusElement) {
+                               input.replaceWith(focusElement);
+                            }
+                          };
+                          input.onkeydown = (e) => {
+                            if (e.key === 'Enter') input.blur();
+                            if (e.key === 'Escape') {
+                              input.value = focusedBlock.focusMessage;
+                              input.blur();
+                            }
+                          };
+                          const focusElement = e.target as HTMLElement;
+                          focusElement.replaceWith(input);
+                          input.focus();
+                        }}
+                        whileHover={{ color: '#3B82F6' }}
+                      >
+                        {truncateFocus(getCurrentFocus())}
+                      </motion.h1>
+                    </AnimatePresence>
+                  </div>
                 </div>
               </div>
 
