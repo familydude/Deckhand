@@ -107,23 +107,24 @@ export default function App() {
     {
       id: '1',
       type: 'title',
-      content: 'Title',
-      tags: ['Tag'],
-      focusMessage: focusPrompts[Math.floor(Math.random() * focusPrompts.length)]
+      content: 'Welcome to Deckhand!',
+      tags: ['Hello'],
+      focusMessage: 'This is the first title. It should draw attention!'
     },
     {
       id: '2',
       type: 'body',
-      content: "Body text for whatever you'd like to say. Add main takeaway points, quotes, anecdotes, or even a very very short story. Body text for whatever you'd like to say. Add main takeaway points. Body text for whatever you'd like to say. Add main takeaway points",
-      tags: ['Tag'],
-      focusMessage: focusPrompts[Math.floor(Math.random() * focusPrompts.length)]
+      content: "Each block should contain one focused idea - something that fits comfortably in view so you always know its purpose at a glance. Think of blocks as thoughts that can stand alone but connect to form larger ideas.",
+      tags: ['Info'],
+      focusMessage: 'This is the first paragraph. It should get the reader hooked.'
     },
     {
       id: '3',
       type: 'body',
-      content: "Body text for whatever you'd like to say. Add main takeaway points, quotes, anecdotes, or even a very very short story.",
-      tags: ['Tag'],
-      focusMessage: focusPrompts[Math.floor(Math.random() * focusPrompts.length)]
+      content: "Try writing a single concept per block. When you find yourself switching topics or adding 'and another thing...' - that's your cue to create a new block. This keeps your writing modular and your thoughts organized.",
+
+      tags: ['Inspiring','Recommendation'],
+      focusMessage: "Where is this going? Edit this message to give the card some direction!"
     }
   ]);
   
