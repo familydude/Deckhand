@@ -107,14 +107,14 @@ export default function App() {
     {
       id: '1',
       type: 'title',
-      content: 'Welcome to Deckhand!',
+      content: '👋 Welcome to Deckhand!🃏',
       tags: ['Hello'],
       focusMessage: 'This is the first title. It should draw attention!'
     },
     {
       id: '2',
       type: 'body',
-      content: "Each block should contain one focused idea - something that fits comfortably in view so you always know its purpose at a glance. Think of blocks as thoughts that can stand alone but connect to form larger ideas.",
+      content: "Each block should contain one *focused idea* - something that fits comfortably in view so you always know its purpose at a glance. Think of blocks as thoughts that can stand alone but connect to form larger ideas.",
       tags: ['Info'],
       focusMessage: 'This is the first paragraph. It should get the reader hooked.'
     },
@@ -124,6 +124,22 @@ export default function App() {
       content: "Try writing a single concept per block. When you find yourself switching topics or adding 'and another thing...' - that's your cue to create a new block. This keeps your writing modular and your thoughts organized.",
 
       tags: ['Inspiring','Recommendation'],
+      focusMessage: "Where is this going? Edit this message to give the card some direction!"
+    },
+        {
+      id: '4',
+      type: 'title',
+      content: "The Focus Banner",
+
+      tags: ['the what now'],
+      focusMessage: "Where is this going? Edit this message to give the card some direction!"
+    },
+        {
+      id: '5',
+      type: 'body',
+      content: "Each card has a purpose which is written in **bold** on the banner above. You can edit the banner message for each card. Try it now. ",
+
+      tags: ['focus'],
       focusMessage: "Where is this going? Edit this message to give the card some direction!"
     }
   ]);

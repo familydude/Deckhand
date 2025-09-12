@@ -38,19 +38,14 @@ export function TextEditor({ blocks, dispatch, focusedBlockId, setFocusedBlockId
   };
 
   // Configure marked for rendering markdown
-  const renderMarkdown = (content: string) => {
-    try {
-      // For title blocks or single lines, render inline
-      const isTitle = content.trim().indexOf('\n') === -1;
-      if (isTitle) {
-        return marked.parseInline(content);
-      }
-      return marked.parse(content);
-    } catch (error) {
-      console.error('Markdown parsing error:', error);
-      return content; // Fallback to plain text
-    }
-  };
+ const renderMarkdown = (content: string) => {
+  try {
+    return marked.parse(content);
+  } catch (error) {
+    console.error('Markdown parsing error:', error);
+    return content;
+  }
+};
 
   // Handle markdown shortcuts
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>, blockId: string) => {
@@ -257,7 +252,7 @@ export function TextEditor({ blocks, dispatch, focusedBlockId, setFocusedBlockId
                       setEditingBlock(block.id);
                       setFocusedBlockId(block.id);
                     }}
-                    className={`w-full cursor-text min-h-[1.5rem] ${
+                    className={`w-full cursor-text min-h-[1.5rem] markdown-content ${
                       block.type === 'title' 
                         ? 'text-2xl font-semibold text-gray-900 tracking-tight' 
                         : 'text-base text-gray-600 leading-relaxed'
