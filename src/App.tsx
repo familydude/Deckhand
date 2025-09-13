@@ -121,7 +121,7 @@ export default function App() {
     {
       id: '3',
       type: 'body',
-      content: "Try writing a single concept per block. When you find yourself switching topics or adding 'and another thing...' - that's your cue to create a new block. This keeps your writing modular and your thoughts organized.",
+      content: "Try writing a single concept per block. \n - When you find yourself switching topics or adding 'and another thing...' - that's your cue to create a new block. This keeps your writing modular and your thoughts organized.",
 
       tags: ['Inspiring','Recommendation'],
       focusMessage: "Where is this going? Edit this message to give the card some direction!"
