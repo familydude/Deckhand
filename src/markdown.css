@@ -18,4 +18,13 @@
 .markdown-content p {
   margin-bottom: 1rem;
 }
- 
+
+.markdown-content a {
+  color: #2563eb !important;
+  text-decoration: underline !important;
+  cursor: pointer;
+}
+
+.markdown-content a:hover {
+  color: #1d4ed8 !important;
+}
