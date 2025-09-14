@@ -198,16 +198,21 @@ export default function App() {
     setSidebarVisible(!sidebarVisible);
   };
 
+  const clearBlocks = () => {
+    dispatch({ type: 'LOAD_DOCUMENT', blocks: [] });
+  };
+
   return (
     <div className="h-screen flex flex-col bg-gray-50">
-      <Header 
-        activeTab={activeTab} 
+      <Header
+        activeTab={activeTab}
         setActiveTab={setActiveTab}
         title={title}
         setTitle={setTitle}
         blocks={blocks}
         dispatch={dispatch}
         setFocusedBlockId={setFocusedBlockId}
+        clearBlocks={clearBlocks}
       />
       
       <div className="flex-1 flex overflow-hidden">

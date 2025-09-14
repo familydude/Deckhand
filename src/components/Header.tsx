@@ -1,5 +1,5 @@
 import { motion } from 'motion/react';
-import { Download, Upload, FileText } from 'lucide-react';
+import { Download, Upload, FileText, FilePlus } from 'lucide-react';
 
 interface Block {
   id: string;
@@ -17,9 +17,10 @@ interface HeaderProps {
   blocks: Block[];
   dispatch: any;
   setFocusedBlockId: (id: string | null) => void;
+  clearBlocks: () => void;
 }
 
-export function Header({ activeTab, setActiveTab, title, setTitle, blocks, dispatch, setFocusedBlockId }: HeaderProps) {
+export function Header({ activeTab, setActiveTab, title, setTitle, blocks, dispatch, setFocusedBlockId, clearBlocks }: HeaderProps) {
   const tabs = ['Main', 'Later', 'Notes', 'Theme', 'Settings', 'Board'];
 
   // Save document as JSON
@@ -95,7 +96,7 @@ export function Header({ activeTab, setActiveTab, title, setTitle, blocks, dispa
   // Export document as markdown
   const exportMarkdown = () => {
     let markdownContent = `# ${title || 'Untitled Document'}\n\n`;
-    
+
     blocks.forEach((block) => {
       if (block.type === 'title') {
         markdownContent += `## ${block.content}\n\n`;
@@ -106,9 +107,9 @@ export function Header({ activeTab, setActiveTab, title, setTitle, blocks, dispa
 
     const blob = new Blob([markdownContent], { type: 'text/markdown' });
     const url = URL.createObjectURL(blob);
-    
+
     const filename = (title || 'document').replace(/[^a-z0-9]/gi, '_').toLowerCase();
-    
+
     const a = document.createElement('a');
     a.href = url;
     a.download = `${filename}.md`;
@@ -116,6 +117,16 @@ export function Header({ activeTab, setActiveTab, title, setTitle, blocks, dispa
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
+  };
+
+  // Create new document
+  const newDocument = () => {
+    const confirmed = window.confirm('Really discard document?');
+    if (confirmed) {
+      clearBlocks();
+      setTitle('Untitled Document');
+      setFocusedBlockId(null);
+    }
   };
 
   return (
@@ -149,6 +160,16 @@ export function Header({ activeTab, setActiveTab, title, setTitle, blocks, dispa
       {/* Load/Save Buttons */}
       <div className="flex items-center gap-2">
         <motion.button
+          onClick={newDocument}
+          className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-200 rounded transition-colors"
+          title="New Document"
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+        >
+          <FilePlus className="w-4 h-4" />
+        </motion.button>
+
+        <motion.button
           onClick={loadDocument}
           className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-200 rounded transition-colors"
           title="Load Document"
@@ -157,7 +178,7 @@ export function Header({ activeTab, setActiveTab, title, setTitle, blocks, dispa
         >
           <Upload className="w-4 h-4" />
         </motion.button>
-        
+
         <motion.button
           onClick={exportMarkdown}
           className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-200 rounded transition-colors"
@@ -167,7 +188,7 @@ export function Header({ activeTab, setActiveTab, title, setTitle, blocks, dispa
         >
           <FileText className="w-4 h-4" />
         </motion.button>
-        
+
         <motion.button
           onClick={saveDocument}
           className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-200 rounded transition-colors"
