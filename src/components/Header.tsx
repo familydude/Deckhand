@@ -1,5 +1,5 @@
 import { motion } from 'motion/react';
-import { Download, Upload } from 'lucide-react';
+import { Download, Upload, FileText } from 'lucide-react';
 
 interface Block {
   id: string;
@@ -92,6 +92,32 @@ export function Header({ activeTab, setActiveTab, title, setTitle, blocks, dispa
     input.click();
   };
 
+  // Export document as markdown
+  const exportMarkdown = () => {
+    let markdownContent = `# ${title || 'Untitled Document'}\n\n`;
+    
+    blocks.forEach((block) => {
+      if (block.type === 'title') {
+        markdownContent += `## ${block.content}\n\n`;
+      } else {
+        markdownContent += `${block.content}\n\n`;
+      }
+    });
+
+    const blob = new Blob([markdownContent], { type: 'text/markdown' });
+    const url = URL.createObjectURL(blob);
+    
+    const filename = (title || 'document').replace(/[^a-z0-9]/gi, '_').toLowerCase();
+    
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${filename}.md`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div className="h-16 bg-gray-100 border-b border-gray-200 flex items-center justify-between px-6">
       {/* Window Controls */}
@@ -130,6 +156,16 @@ export function Header({ activeTab, setActiveTab, title, setTitle, blocks, dispa
           whileTap={{ scale: 0.95 }}
         >
           <Upload className="w-4 h-4" />
+        </motion.button>
+        
+        <motion.button
+          onClick={exportMarkdown}
+          className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-200 rounded transition-colors"
+          title="Export as Markdown"
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+        >
+          <FileText className="w-4 h-4" />
         </motion.button>
         
         <motion.button
