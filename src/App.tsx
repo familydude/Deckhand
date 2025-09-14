@@ -251,8 +251,8 @@ export default function App() {
           ) : (
             <>
               {/* Focus Banner */}
-              <div className={`py-6 bg-white border-b border-gray-200 ${
-                !sidebarVisible ? 'pl-20 pr-8' : 'px-8'
+              <div id="focusparent" className={`py-6 bg-white border-b border-gray-200 ${
+                !sidebarVisible ? 'px-40' : 'px-6'
               }`}>
                 <div className="flex items-center gap-4">
                   <motion.div
