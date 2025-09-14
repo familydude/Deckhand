@@ -1,6 +1,6 @@
 import { useState, useRef, useReducer } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, Menu } from 'lucide-react';
 import { Header } from './components/Header';
 import { Sidebar } from './components/Sidebar';
 import { TextEditor } from './components/TextEditor';
@@ -194,6 +194,10 @@ export default function App() {
     }
   };
 
+  const toggleSidebar = () => {
+    setSidebarVisible(!sidebarVisible);
+  };
+
   return (
     <div className="h-screen flex flex-col bg-gray-50">
       <Header 
@@ -217,7 +221,7 @@ export default function App() {
           transition={{ type: "spring", stiffness: 300, damping: 30 }}
           className="relative z-10 h-full"
         >
-          <Sidebar 
+          <Sidebar
             blocks={blocks}
             onBlockClick={handleBlockClick}
             dispatch={dispatch}
@@ -225,12 +229,18 @@ export default function App() {
             setActiveTab={setActiveTab}
             title={title}
             setTitle={setTitle}
+            onToggle={toggleSidebar}
           />
         </motion.div>
 
         {/* Main Content */}
-        <div 
+        <motion.div
           ref={mainRef}
+          initial={false}
+          animate={{
+            x: sidebarVisible ? 0 : -256,
+          }}
+          transition={{ type: "spring", stiffness: 300, damping: 30 }}
           className="flex-1 flex flex-col overflow-hidden"
           onTouchStart={handleTouchStart}
           onTouchMove={handleTouchMove}
@@ -241,7 +251,9 @@ export default function App() {
           ) : (
             <>
               {/* Focus Banner */}
-              <div className="px-8 py-6 bg-white border-b border-gray-200">
+              <div className={`py-6 bg-white border-b border-gray-200 ${
+                !sidebarVisible ? 'pl-20 pr-8' : 'px-8'
+              }`}>
                 <div className="flex items-center gap-4">
                   <motion.div
                     whileHover={{ scale: 1.1 }}
@@ -317,17 +329,20 @@ export default function App() {
               </div>
             </>
           )}
-        </div>
+        </motion.div>
 
-        {/* Sidebar Toggle Button (Mobile) */}
+        {/* Floating Menu Toggle Button */}
         {!sidebarVisible && (
           <motion.button
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            onClick={() => setSidebarVisible(true)}
-            className="fixed top-20 left-4 z-20 bg-white shadow-lg rounded-full p-2 border border-gray-200"
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+            onClick={toggleSidebar}
+            className="fixed top-20 left-4 z-20 w-8 h-8 bg-gray-100 hover:bg-gray-200 shadow-lg rounded-md flex items-center justify-center border border-gray-200 transition-colors"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
           >
-            <ArrowRight className="w-5 h-5 text-gray-600 rotate-180" />
+            <Menu className="w-4 h-4 text-gray-600" />
           </motion.button>
         )}
       </div>

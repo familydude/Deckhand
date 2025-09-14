@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { motion, Reorder } from 'motion/react';
 import { BlockAction } from '../App';
-import { Star, Book, Bookmark, ArrowRight, MoreHorizontal, AlignLeft } from 'lucide-react';
+import { Star, Book, Bookmark, ArrowRight, MoreHorizontal, AlignLeft, Menu } from 'lucide-react';
 import svgPaths from "../imports/svg-gsfv4q9vrt";
 
 interface Block {
@@ -19,9 +19,10 @@ interface SidebarProps {
   setActiveTab: (tab: string) => void;
   title: string;
   setTitle: (title: string) => void;
+  onToggle: () => void;
 }
 
-export function Sidebar({ blocks, onBlockClick, dispatch, activeTab, setActiveTab, title, setTitle }: SidebarProps) {
+export function Sidebar({ blocks, onBlockClick, dispatch, activeTab, setActiveTab, title, setTitle, onToggle }: SidebarProps) {
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   
@@ -33,9 +34,19 @@ export function Sidebar({ blocks, onBlockClick, dispatch, activeTab, setActiveTa
       <div className="p-2 flex-1 overflow-hidden flex flex-col">
         <div className="bg-white rounded-lg border border-gray-200 shadow-sm flex flex-col h-full">
           <div className="p-2 flex flex-col h-full">
-            {/* Menu Header - Fixed */}
+            {/* Menu Header with Toggle Button - Fixed */}
             <div className="px-4 py-2 flex-shrink-0">
-              <div className="text-sm text-gray-500">Document Structure</div>
+              <div className="flex items-center gap-2">
+                <motion.button
+                  onClick={onToggle}
+                  className="w-6 h-6 bg-gray-100 hover:bg-gray-200 rounded-md flex items-center justify-center transition-colors flex-shrink-0"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  <Menu className="w-3 h-3 text-gray-600" />
+                </motion.button>
+                <div className="text-sm text-gray-500">Document Structure</div>
+              </div>
               <div 
                 className="font-semibold text-gray-900 cursor-text"
                 onClick={(e) => {
