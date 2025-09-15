@@ -350,7 +350,7 @@ export function TextEditor({ blocks, dispatch, focusedBlockId, setFocusedBlockId
                 </div>
               </div>
 
-            </motion.div>
+            </motion.div> 
 
             {/* Action buttons at bottom-right of block */}
             <AnimatePresence>
@@ -359,8 +359,8 @@ export function TextEditor({ blocks, dispatch, focusedBlockId, setFocusedBlockId
                   initial={{ opacity: 0, y: 5 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: 5 }}
-                  className="absolute flex gap-1 z-20"
-                  style={{ bottom: '20px', right: '24px' }}
+                  className="absolute flex gap-1 z-20 right-8"
+                  style={{ bottom: '1.5rem' }}
                 >
                   <button
                     onClick={() => addBlock(block.id, 'title')}
