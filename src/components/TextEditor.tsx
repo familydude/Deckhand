@@ -397,7 +397,7 @@ export function TextEditor({ blocks, dispatch, focusedBlockId, setFocusedBlockId
                       ? 'bottom-0 right-3 mb-2'
                       : isTablet
                         ? 'bottom-0 right-3 mb-6'
-                        : 'bottom-0 left-1/2 -translate-x-1/2 mb-2'
+                        : 'bottom-6 right-6'
                   }`}
  
                 >
