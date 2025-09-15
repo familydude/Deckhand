@@ -1,5 +1,6 @@
 import { motion } from 'motion/react';
 import { Download, Upload, FileText, FilePlus } from 'lucide-react';
+import { useResponsive } from '../hooks/useResponsive';
 
 interface Block {
   id: string;
@@ -21,6 +22,7 @@ interface HeaderProps {
 }
 
 export function Header({ activeTab, setActiveTab, title, setTitle, blocks, dispatch, setFocusedBlockId, clearBlocks }: HeaderProps) {
+  const { isMobile, isTablet, isDesktop } = useResponsive();
   const tabs = ['Main', 'Later', 'Notes', 'Theme', 'Settings', 'Board'];
 
   // Save document as JSON
@@ -130,73 +132,99 @@ export function Header({ activeTab, setActiveTab, title, setTitle, blocks, dispa
   };
 
   return (
-    <div className="h-16 bg-gray-100 border-b border-gray-200 flex items-center justify-between px-6">
+    <div className={`bg-gray-100 border-b border-gray-200 flex items-center justify-between ${
+      isMobile ? 'h-12 px-3' : 'h-16 px-6'
+    }`}>
       {/* Window Controls */}
       <div className="flex items-center gap-2">
-        <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-        <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
-        <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+        <div className={`bg-red-500 rounded-full ${isMobile ? 'w-2 h-2' : 'w-3 h-3'}`}></div>
+        <div className={`bg-yellow-500 rounded-full ${isMobile ? 'w-2 h-2' : 'w-3 h-3'}`}></div>
+        <div className={`bg-green-500 rounded-full ${isMobile ? 'w-2 h-2' : 'w-3 h-3'}`}></div>
       </div>
 
-      {/* Tabs */}
-      <div className="flex items-center gap-1">
-        {tabs.map((tab) => (
+      {/* Tabs - Hide on mobile, show simplified on tablet */}
+      {!isMobile && (
+        <div className="flex items-center gap-1">
+          {tabs.map((tab) => (
+            <motion.button
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              className={`rounded-t border-b transition-colors ${
+                isMobile ? 'px-2 py-0.5 text-xs' : 'px-3 py-1'
+              } ${
+                activeTab === tab
+                  ? 'text-gray-900 border-gray-900 bg-white'
+                  : 'text-gray-500 border-gray-300 hover:text-gray-700'
+              }`}
+              whileHover={{ y: -1 }}
+              whileTap={{ y: 0 }}
+            >
+              {tab}
+            </motion.button>
+          ))}
+        </div>
+      )}
+
+      {/* Mobile: Show only current tab name */}
+      {isMobile && (
+        <div className="text-sm text-gray-600 font-medium">
+          {activeTab}
+        </div>
+      )}
+
+      {/* Load/Save Buttons - Responsive sizing and visibility */}
+      <div className={`flex items-center ${isMobile ? 'gap-1' : 'gap-2'}`}>
+        {/* Show all buttons on desktop, only essential ones on mobile */}
+        {!isMobile && (
           <motion.button
-            key={tab}
-            onClick={() => setActiveTab(tab)}
-            className={`px-3 py-1 rounded-t border-b transition-colors ${
-              activeTab === tab
-                ? 'text-gray-900 border-gray-900 bg-white'
-                : 'text-gray-500 border-gray-300 hover:text-gray-700'
+            onClick={newDocument}
+            className={`text-gray-600 hover:text-gray-900 hover:bg-gray-200 rounded transition-colors ${
+              isMobile ? 'p-1' : 'p-2'
             }`}
-            whileHover={{ y: -1 }}
-            whileTap={{ y: 0 }}
+            title="New Document"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
           >
-            {tab}
+            <FilePlus className={isMobile ? 'w-3 h-3' : 'w-4 h-4'} />
           </motion.button>
-        ))}
-      </div>
-
-      {/* Load/Save Buttons */}
-      <div className="flex items-center gap-2">
-        <motion.button
-          onClick={newDocument}
-          className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-200 rounded transition-colors"
-          title="New Document"
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-        >
-          <FilePlus className="w-4 h-4" />
-        </motion.button>
+        )}
 
         <motion.button
           onClick={loadDocument}
-          className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-200 rounded transition-colors"
+          className={`text-gray-600 hover:text-gray-900 hover:bg-gray-200 rounded transition-colors ${
+            isMobile ? 'p-1' : 'p-2'
+          }`}
           title="Load Document"
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
         >
-          <Upload className="w-4 h-4" />
+          <Upload className={isMobile ? 'w-3 h-3' : 'w-4 h-4'} />
         </motion.button>
 
-        <motion.button
-          onClick={exportMarkdown}
-          className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-200 rounded transition-colors"
-          title="Export as Markdown"
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-        >
-          <FileText className="w-4 h-4" />
-        </motion.button>
+        {!isMobile && (
+          <motion.button
+            onClick={exportMarkdown}
+            className={`text-gray-600 hover:text-gray-900 hover:bg-gray-200 rounded transition-colors ${
+              isMobile ? 'p-1' : 'p-2'
+            }`}
+            title="Export as Markdown"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            <FileText className={isMobile ? 'w-3 h-3' : 'w-4 h-4'} />
+          </motion.button>
+        )}
 
         <motion.button
           onClick={saveDocument}
-          className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-200 rounded transition-colors"
+          className={`text-gray-600 hover:text-gray-900 hover:bg-gray-200 rounded transition-colors ${
+            isMobile ? 'p-1' : 'p-2'
+          }`}
           title="Save Document"
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
         >
-          <Download className="w-4 h-4" />
+          <Download className={isMobile ? 'w-3 h-3' : 'w-4 h-4'} />
         </motion.button>
       </div>
     </div>

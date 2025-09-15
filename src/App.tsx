@@ -1,10 +1,11 @@
-import { useState, useRef, useReducer } from 'react';
+import { useState, useRef, useReducer, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { ArrowRight, Menu } from 'lucide-react';
 import { Header } from './components/Header';
 import { Sidebar } from './components/Sidebar';
 import { TextEditor } from './components/TextEditor';
 import { Settings } from './components/Settings';
+import { useResponsive } from './hooks/useResponsive';
 
 interface Block {
   id: string;
@@ -85,6 +86,7 @@ const blockReducer = (state: Block[], action: BlockAction): Block[] => {
 };
 
 export default function App() {
+  const { isMobile, isTablet, isDesktop } = useResponsive();
   const [activeTab, setActiveTab] = useState('Main');
   const [title, setTitle] = useState('Document Title');
   const [focusedBlockId, setFocusedBlockId] = useState<string | null>(null);
@@ -157,10 +159,15 @@ export default function App() {
     return message.substring(0, maxLength) + '...';
   };
 
-  const [sidebarVisible, setSidebarVisible] = useState(true);
+  const [sidebarVisible, setSidebarVisible] = useState(isDesktop);
   const mainRef = useRef<HTMLDivElement>(null);
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const [touchEnd, setTouchEnd] = useState<number | null>(null);
+
+  // Update sidebar state when screen size changes
+  useEffect(() => {
+    setSidebarVisible(isDesktop);
+  }, [isDesktop]);
 
   // Handle touch gestures for mobile
   const handleTouchStart = (e: React.TouchEvent) => {
@@ -216,34 +223,78 @@ export default function App() {
       />
       
       <div className="flex-1 flex overflow-hidden">
-        {/* Sidebar */}
-        <motion.div
-          initial={false}
-          animate={{
-            x: sidebarVisible ? 0 : -280,
-            opacity: sidebarVisible ? 1 : 0
-          }}
-          transition={{ type: "spring", stiffness: 300, damping: 30 }}
-          className="relative z-10 h-full"
-        >
-          <Sidebar
-            blocks={blocks}
-            onBlockClick={handleBlockClick}
-            dispatch={dispatch}
-            activeTab={activeTab}
-            setActiveTab={setActiveTab}
-            title={title}
-            setTitle={setTitle}
-            onToggle={toggleSidebar}
-          />
-        </motion.div>
+        {/* Sidebar - Desktop: Sliding, Mobile/Tablet: Overlay */}
+        {isDesktop ? (
+          <motion.div
+            initial={false}
+            animate={{
+              x: sidebarVisible ? 0 : -280,
+              opacity: sidebarVisible ? 1 : 0
+            }}
+            transition={{ type: "spring", stiffness: 300, damping: 30 }}
+            className="relative z-10 h-full"
+          >
+            <Sidebar
+              blocks={blocks}
+              onBlockClick={handleBlockClick}
+              dispatch={dispatch}
+              activeTab={activeTab}
+              setActiveTab={setActiveTab}
+              title={title}
+              setTitle={setTitle}
+              onToggle={toggleSidebar}
+              isMobile={isMobile}
+              isTablet={isTablet}
+              isDesktop={isDesktop}
+            />
+          </motion.div>
+        ) : (
+          <AnimatePresence>
+            {sidebarVisible && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="fixed inset-0 z-50"
+              >
+                {/* Backdrop */}
+                <div
+                  className="absolute inset-0 bg-black/25"
+                  onClick={toggleSidebar}
+                />
+
+                {/* Sidebar */}
+                <motion.div
+                  initial={{ x: -280 }}
+                  animate={{ x: 0 }}
+                  exit={{ x: -280 }}
+                  className="absolute left-0 top-0 h-full w-64 shadow-xl"
+                >
+                  <Sidebar
+                    blocks={blocks}
+                    onBlockClick={handleBlockClick}
+                    dispatch={dispatch}
+                    activeTab={activeTab}
+                    setActiveTab={setActiveTab}
+                    title={title}
+                    setTitle={setTitle}
+                    onToggle={toggleSidebar}
+                    isMobile={isMobile}
+                    isTablet={isTablet}
+                    isDesktop={isDesktop}
+                  />
+                </motion.div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        )}
 
         {/* Main Content */}
         <motion.div
           ref={mainRef}
           initial={false}
           animate={{
-            x: sidebarVisible ? 0 : -256,
+            x: isDesktop && sidebarVisible ? 0 : isDesktop ? -256 : 0,
           }}
           transition={{ type: "spring", stiffness: 300, damping: 30 }}
           className="flex-1 flex flex-col overflow-hidden"
@@ -255,31 +306,49 @@ export default function App() {
             <Settings />
           ) : (
             <>
-              {/* Focus Banner */}
-              <div id="focusparent" className={`py-6 bg-white border-b border-gray-200 ${
-                !sidebarVisible ? 'px-40' : 'px-6'
+              {/* Focus Banner - Responsive */}
+              <div id="focusparent" className={`bg-white border-b border-gray-200 ${
+                isMobile ? 'py-3 px-4' : isTablet ? 'py-4 px-6' : `py-6 ${!sidebarVisible ? 'px-40' : 'px-6'}`
               }`}>
-                <div className="flex items-center gap-4">
+                <div className={`flex items-center ${isMobile ? 'gap-2' : 'gap-4'}`}>
+                  {/* Mobile/Tablet menu button */}
+                  {!isDesktop && (
+                    <motion.button
+                      onClick={toggleSidebar}
+                      className={`bg-gray-100 hover:bg-gray-200 rounded-full flex items-center justify-center transition-colors ${
+                        isMobile ? 'w-8 h-8' : 'w-10 h-10'
+                      }`}
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                    >
+                      <Menu className={`text-gray-600 ${isMobile ? 'w-4 h-4' : 'w-5 h-5'}`} />
+                    </motion.button>
+                  )}
+
                   <motion.div
                     whileHover={{ scale: 1.1 }}
                     whileTap={{ scale: 0.95 }}
-                    className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center cursor-pointer"
+                    className={`bg-gray-100 rounded-full flex items-center justify-center cursor-pointer ${
+                      isMobile ? 'w-8 h-8' : 'w-12 h-12'
+                    }`}
                   >
-                    <ArrowRight className="w-6 h-6 text-gray-600" />
+                    <ArrowRight className={`text-gray-600 ${isMobile ? 'w-4 h-4' : 'w-6 h-6'}`} />
                   </motion.div>
                   
-                  <div className="flex-1 min-h-[2.5rem] flex items-center">
+                  <div className={`flex-1 flex items-center ${isMobile ? 'min-h-[2rem]' : 'min-h-[2.5rem]'}`}>
                     <AnimatePresence mode="wait">
-                      <motion.h1 
+                      <motion.h1
                         key={focusedBlockId || "default"} // Key changes when focused block changes
                         initial={{ opacity: 0, y: -5 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: 5 }}
-                        transition={{ 
+                        transition={{
                           duration: 0.2,
                           ease: "easeInOut"
                         }}
-                        className="text-2xl font-semibold text-gray-900 cursor-text truncate w-full"
+                        className={`font-semibold text-gray-900 cursor-text truncate w-full ${
+                          isMobile ? 'text-base' : isTablet ? 'text-xl' : 'text-2xl'
+                        }`}
                         onClick={(e) => {
                           if (!focusedBlockId) return; // Can't edit if no block is focused
                           
@@ -312,23 +381,30 @@ export default function App() {
                         }}
                         whileHover={{ color: '#3B82F6' }}
                       >
-                        {truncateFocus(getCurrentFocus())}
+                        {truncateFocus(getCurrentFocus(), isMobile ? 40 : isTablet ? 60 : 80)}
                       </motion.h1>
                     </AnimatePresence>
                   </div>
                 </div>
               </div>
 
-              {/* Editor Content */}
-              <div className="flex-1 overflow-auto p-8">
-                <div className="max-w-4xl mx-auto">
-                  <TextEditor 
+              {/* Editor Content - Responsive spacing and max-width */}
+              <div className={`flex-1 overflow-auto ${
+                isMobile ? 'p-3' : isTablet ? 'p-4' : 'p-8'
+              }`}>
+                <div className={`mx-auto ${
+                  isMobile ? 'max-w-none' : isTablet ? 'max-w-3xl' : 'max-w-4xl'
+                }`}>
+                  <TextEditor
                     key="main-editor"
                     blocks={blocks}
                     dispatch={dispatch}
                     focusedBlockId={focusedBlockId}
                     setFocusedBlockId={setFocusedBlockId}
                     focusPrompts={focusPrompts}
+                    isMobile={isMobile}
+                    isTablet={isTablet}
+                    isDesktop={isDesktop}
                   />
                 </div>
               </div>
@@ -336,8 +412,8 @@ export default function App() {
           )}
         </motion.div>
 
-        {/* Floating Menu Toggle Button */}
-        {!sidebarVisible && (
+        {/* Floating Menu Toggle Button - Desktop only when sidebar closed */}
+        {isDesktop && !sidebarVisible && (
           <motion.button
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}

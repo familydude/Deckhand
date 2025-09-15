@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { motion, Reorder } from 'motion/react';
 import { BlockAction } from '../App';
-import { Star, Book, Bookmark, ArrowRight, MoreHorizontal, AlignLeft, Menu } from 'lucide-react';
+import { Star, Book, Bookmark, ArrowRight, MoreHorizontal, AlignLeft, Menu, X } from 'lucide-react';
 import svgPaths from "../imports/svg-gsfv4q9vrt";
 
 interface Block {
@@ -20,9 +20,12 @@ interface SidebarProps {
   title: string;
   setTitle: (title: string) => void;
   onToggle: () => void;
+  isMobile: boolean;
+  isTablet: boolean;
+  isDesktop: boolean;
 }
 
-export function Sidebar({ blocks, onBlockClick, dispatch, activeTab, setActiveTab, title, setTitle, onToggle }: SidebarProps) {
+export function Sidebar({ blocks, onBlockClick, dispatch, activeTab, setActiveTab, title, setTitle, onToggle, isMobile, isTablet, isDesktop }: SidebarProps) {
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   
@@ -34,18 +37,20 @@ export function Sidebar({ blocks, onBlockClick, dispatch, activeTab, setActiveTa
       <div className="p-2 flex-1 overflow-hidden flex flex-col">
         <div className="bg-white rounded-lg border border-gray-200 shadow-sm flex flex-col h-full">
           <div className="p-2 flex flex-col h-full">
-            {/* Menu Header with Toggle Button - Fixed */}
+            {/* Menu Header with Close Button - Fixed */}
             <div className="px-4 py-2 flex-shrink-0">
-              <div className="flex items-center gap-2">
+              <div className="flex items-center justify-between">
+                <div className="text-sm text-gray-500">Document Structure</div>
+                {/* Close button that works on ALL screen sizes */}
                 <motion.button
                   onClick={onToggle}
                   className="w-6 h-6 bg-gray-100 hover:bg-gray-200 rounded-md flex items-center justify-center transition-colors flex-shrink-0"
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
+                  title="Close sidebar"
                 >
-                  <Menu className="w-3 h-3 text-gray-600" />
+                  <X className="w-3 h-3 text-gray-600" />
                 </motion.button>
-                <div className="text-sm text-gray-500">Document Structure</div>
               </div>
               <div 
                 className="font-semibold text-gray-900 cursor-text"
@@ -91,13 +96,13 @@ export function Sidebar({ blocks, onBlockClick, dispatch, activeTab, setActiveTa
                   <Reorder.Item
                     key={block.id}
                     value={block}
-                    className={`px-4 py-3 rounded-lg cursor-grab active:cursor-grabbing transition-colors ${
+                    className={`rounded-lg cursor-grab active:cursor-grabbing transition-colors ${
                       hoveredItem === block.id && !isDragging ? 'bg-gray-50' : ''
-                    }`}
-                    style={{ 
+                    } ${isMobile ? 'px-3 py-2' : 'px-4 py-3'}`}
+                    style={{
                       listStyle: 'none',
                       margin: '2px 0',
-                      padding: '12px 16px',
+                      padding: isMobile ? '8px 12px' : '12px 16px',
                       borderRadius: '8px'
                     }}
                     onMouseEnter={() => !isDragging && setHoveredItem(block.id)}
@@ -127,30 +132,34 @@ export function Sidebar({ blocks, onBlockClick, dispatch, activeTab, setActiveTa
                       layout: { duration: 0.15, ease: "easeOut" }
                     }}
                   >
-                    <div className="flex items-start gap-3">
+                    <div className={`flex items-start ${isMobile ? 'gap-2' : 'gap-3'}`}>
                       {block.type === 'title' ? (
-                        <Bookmark className="w-5 h-5 text-gray-600 mt-0.5 shrink-0" />
+                        <Bookmark className={`text-gray-600 mt-0.5 shrink-0 ${isMobile ? 'w-4 h-4' : 'w-5 h-5'}`} />
                       ) : (
-                        <AlignLeft className="w-5 h-5 text-gray-600 mt-0.5 shrink-0" />
+                        <AlignLeft className={`text-gray-600 mt-0.5 shrink-0 ${isMobile ? 'w-4 h-4' : 'w-5 h-5'}`} />
                       )}
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between">
-                          <div className={`font-medium truncate ${
+                          <div className={`truncate ${
                             block.type === 'title' ? 'text-gray-900' : 'text-gray-700'
-                          }`}>
-                            {block.content.length > 25 ? block.content.substring(0, 25) + '...' : block.content}
+                          } ${isMobile ? 'text-sm font-medium' : 'font-medium'}`}>
+                            {block.content.length > (isMobile ? 20 : 25) ?
+                              block.content.substring(0, isMobile ? 20 : 25) + '...' :
+                              block.content}
                           </div>
-                          <ArrowRight className="w-4 h-4 text-gray-400 ml-2 shrink-0" />
+                          <ArrowRight className={`text-gray-400 ml-2 shrink-0 ${isMobile ? 'w-3 h-3' : 'w-4 h-4'}`} />
                         </div>
                         {block.tags.length > 0 && (
                           <div className="flex gap-1 mt-1 flex-wrap">
-                            {block.tags.slice(0, 2).map((tag, tagIndex) => (
-                              <span key={tagIndex} className="text-xs bg-gray-200 text-gray-600 px-1.5 py-0.5 rounded">
+                            {block.tags.slice(0, isMobile ? 1 : 2).map((tag, tagIndex) => (
+                              <span key={tagIndex} className={`bg-gray-200 text-gray-600 rounded ${
+                                isMobile ? 'text-xs px-1 py-0.5' : 'text-xs px-1.5 py-0.5'
+                              }`}>
                                 {tag}
                               </span>
                             ))}
-                            {block.tags.length > 2 && (
-                              <span className="text-xs text-gray-400">+{block.tags.length - 2}</span>
+                            {block.tags.length > (isMobile ? 1 : 2) && (
+                              <span className="text-xs text-gray-400">+{block.tags.length - (isMobile ? 1 : 2)}</span>
                             )}
                           </div>
                         )}

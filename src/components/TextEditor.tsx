@@ -20,9 +20,12 @@ interface TextEditorProps {
   focusedBlockId: string | null;
   setFocusedBlockId: React.Dispatch<React.SetStateAction<string | null>>;
   focusPrompts: string[];
+  isMobile: boolean;
+  isTablet: boolean;
+  isDesktop: boolean;
 }
 
-export function TextEditor({ blocks, dispatch, focusedBlockId, setFocusedBlockId, focusPrompts }: TextEditorProps) {
+export function TextEditor({ blocks, dispatch, focusedBlockId, setFocusedBlockId, focusPrompts, isMobile, isTablet, isDesktop }: TextEditorProps) {
   const [hoveredBlock, setHoveredBlock] = useState<string | null>(null);
   const [editingBlock, setEditingBlock] = useState<string | null>(null);
   const [draggedBlock, setDraggedBlock] = useState<string | null>(null);
@@ -152,12 +155,14 @@ export function TextEditor({ blocks, dispatch, focusedBlockId, setFocusedBlockId
     dispatch({ type: 'REMOVE_TAG', blockId, tagIndex });
   };
 
-  const Info: React.FC<{ isActive?: boolean }> = ({ isActive = false }) => (
-    <div className="relative shrink-0 size-8">
+  const Info: React.FC<{ isActive?: boolean; isMobile?: boolean; blockId?: string }> = ({ isActive = false, isMobile = false, blockId }) => (
+    <div className={`relative shrink-0 ${isMobile ? 'size-6' : 'size-8'}`}>
       {isActive ? (
         // Arrow icon for focused block (matches focus banner)
-        <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center">
-          <ArrowRight className="w-4 h-4 text-gray-600" />
+        <div className={`bg-gray-100 rounded-full flex items-center justify-center ${
+          blockId === focusedBlockId ? 'ring-2 ring-blue-500' : ''
+        } ${isMobile ? 'w-6 h-6' : 'w-8 h-8'}`}>
+          <ArrowRight className={`text-gray-600 ${isMobile ? 'w-3 h-3' : 'w-4 h-4'}`} />
         </div>
       ) : (
         // Regular info icon for non-focused blocks
@@ -234,23 +239,27 @@ export function TextEditor({ blocks, dispatch, focusedBlockId, setFocusedBlockId
                 scale: { duration: isDeletingBlock ? 0.3 : (isNewBlock ? 0.5 : 0.3) },
                 x: { duration: 0.3, ease: "easeOut" }
               }}
-              className="relative mb-6"
+              className={`relative ${isMobile ? 'mb-4' : 'mb-6'}`}
               onMouseEnter={() => setHoveredBlock(block.id)}
               onMouseLeave={() => setHoveredBlock(null)}
             >
 
             {/* Block container */}
             <motion.div
-              className="bg-white box-border content-start flex flex-wrap gap-6 items-start justify-start min-w-60 p-6 rounded-lg w-full border border-gray-200 shadow-sm"
+              className={`bg-white box-border content-start flex flex-wrap items-start justify-start min-w-60 rounded-lg w-full border border-gray-200 shadow-sm ${
+                isMobile ? 'p-4 gap-3' : isTablet ? 'p-6 gap-6' : 'p-6 gap-6'
+              }`}
             >
               {/* Drag handle */}
               <div className="absolute -left-8 top-6 opacity-0 hover:opacity-100 transition-opacity">
                 <GripVertical className="w-5 h-5 text-gray-400 cursor-grab" />
               </div>
 
-              <Info isActive={block.id === focusedBlockId} />
+              <Info isActive={block.id === focusedBlockId} isMobile={isMobile} blockId={block.id} />
               
-              <div className="basis-0 content-stretch flex flex-col gap-4 grow items-start justify-start min-h-px min-w-40 relative shrink-0">
+              <div className={`basis-0 content-stretch flex flex-col grow items-start justify-start min-h-px min-w-40 relative shrink-0 ${
+                isMobile ? 'gap-3' : isTablet ? 'gap-6' : 'gap-4'
+              }`}>
                 {/* Editable content or Preview */}
                 {editingBlock === block.id ? (
                   <textarea
@@ -276,9 +285,17 @@ export function TextEditor({ blocks, dispatch, focusedBlockId, setFocusedBlockId
                     }}
                     onKeyDown={(e) => handleKeyDown(e, block.id)}
                     className={`w-full bg-transparent border-none outline-none resize-none overflow-hidden cursor-text ${
-                      block.type === 'title' 
-                        ? 'text-2xl font-semibold text-gray-900 tracking-tight' 
-                        : 'text-base text-gray-600 leading-relaxed'
+                      block.type === 'title'
+                        ? isMobile
+                          ? 'text-lg font-semibold text-gray-900 tracking-tight'
+                          : isTablet
+                            ? 'text-xl font-semibold text-gray-900 tracking-tight'
+                            : 'text-2xl font-semibold text-gray-900 tracking-tight'
+                        : isMobile
+                          ? 'text-sm text-gray-600 leading-relaxed'
+                          : isTablet
+                            ? 'text-sm text-gray-600 leading-relaxed'
+                            : 'text-base text-gray-600 leading-relaxed'
                     }`}
                     style={{ minHeight: block.type === 'title' ? '2.25rem' : '1.5rem' }}
                   />
@@ -289,9 +306,17 @@ export function TextEditor({ blocks, dispatch, focusedBlockId, setFocusedBlockId
     setFocusedBlockId(block.id);
   }}
   className={`w-full cursor-text min-h-[1.5rem] markdown-content ${
-    block.type === 'title' 
-      ? 'text-2xl font-semibold text-gray-900 tracking-tight' 
-      : 'text-base text-gray-600 leading-relaxed'
+    block.type === 'title'
+      ? isMobile
+        ? 'text-lg font-semibold text-gray-900 tracking-tight'
+        : isTablet
+          ? 'text-xl font-semibold text-gray-900 tracking-tight'
+          : 'text-2xl font-semibold text-gray-900 tracking-tight'
+      : isMobile
+        ? 'text-sm text-gray-600 leading-relaxed'
+        : isTablet
+          ? 'text-sm text-gray-600 leading-relaxed'
+          : 'text-base text-gray-600 leading-relaxed'
   }`}
   dangerouslySetInnerHTML={{ 
     __html: renderMarkdown(block.content) 
@@ -299,20 +324,22 @@ export function TextEditor({ blocks, dispatch, focusedBlockId, setFocusedBlockId
 />
                 )}
 
-                {/* Tags */}
-                <div className="flex flex-wrap gap-2 items-center">
+                {/* Tags - Responsive sizing */}
+                <div className={`flex flex-wrap items-center ${isMobile ? 'gap-1' : 'gap-2'}`}>
                   {block.tags.map((tag, tagIndex) => (
-                    <div key={tagIndex} className="bg-gray-800 text-white px-3 py-1 rounded-lg flex items-center gap-2">
-                      <span className="text-sm">{tag}</span>
+                    <div key={tagIndex} className={`bg-gray-800 text-white rounded-lg flex items-center gap-1 ${
+                      isMobile ? 'px-2 py-0.5' : 'px-3 py-1'
+                    }`}>
+                      <span className={isMobile ? 'text-xs' : 'text-sm'}>{tag}</span>
                       <button
                         onClick={() => removeTag(block.id, tagIndex)}
                         className="text-gray-300 hover:text-white"
                       >
-                        <X className="w-3 h-3" />
+                        <X className={isMobile ? 'w-2.5 h-2.5' : 'w-3 h-3'} />
                       </button>
                     </div>
                   ))}
-                  
+
                   {/* Add tag button */}
                   {addingTagToBlock === block.id ? (
                     <input
@@ -335,16 +362,20 @@ export function TextEditor({ blocks, dispatch, focusedBlockId, setFocusedBlockId
                         setNewTag('');
                         setAddingTagToBlock(null);
                       }}
-                      className="bg-gray-100 px-2 py-1 rounded text-sm border-none outline-none"
+                      className={`bg-gray-100 rounded border-none outline-none ${
+                        isMobile ? 'px-1.5 py-0.5 text-xs' : 'px-2 py-1 text-sm'
+                      }`}
                       placeholder="Tag name"
                       autoFocus
                     />
                   ) : (
                     <button
                       onClick={() => setAddingTagToBlock(block.id)}
-                      className="bg-gray-200 hover:bg-gray-300 text-gray-600 px-2 py-1 rounded-lg transition-colors"
+                      className={`bg-gray-200 hover:bg-gray-300 text-gray-600 rounded-lg transition-colors ${
+                        isMobile ? 'px-1.5 py-0.5' : 'px-2 py-1'
+                      }`}
                     >
-                      <Hash className="w-3 h-3" />
+                      <Hash className={isMobile ? 'w-2.5 h-2.5' : 'w-3 h-3'} />
                     </button>
                   )}
                 </div>
@@ -352,73 +383,51 @@ export function TextEditor({ blocks, dispatch, focusedBlockId, setFocusedBlockId
 
             </motion.div> 
 
-            {/* Action buttons at bottom-right of block */}
+            {/* Action buttons - Touch-friendly on mobile, hover on desktop */}
             <AnimatePresence>
-              {hoveredBlock === block.id && (
+              {(hoveredBlock === block.id || isMobile || isTablet) && (
                 <motion.div
                   initial={{ opacity: 0, y: 5 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: 5 }}
-                  className="absolute flex gap-1 z-20 right-8"
-                  style={{ bottom: '1.5rem' }}
+ 
+ 
+                  className={`absolute flex gap-1 z-20 ${
+                    isMobile
+                      ? 'bottom-0 right-3 mb-2'
+                      : isTablet
+                        ? 'bottom-0 right-3 mb-6'
+                        : 'bottom-0 left-1/2 -translate-x-1/2 mb-2'
+                  }`}
+ 
                 >
                   <button
                     onClick={() => addBlock(block.id, 'title')}
-                    className="w-6 h-6 rounded-full shadow-lg border-0 transition-all duration-200 flex items-center justify-center"
+                    className={`rounded-full shadow-lg border-0 transition-all duration-200 flex items-center justify-center bg-gray-800 text-white hover:bg-gray-600 ${
+                      isMobile ? 'w-8 h-8' : 'w-6 h-6'
+                    }`}
                     title="Add title block"
-                    style={{ 
-                      backgroundColor: '#111827',
-                      color: 'white'
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.backgroundColor = '#D1D5DB';
-                      e.currentTarget.style.color = 'black';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.backgroundColor = '#111827';
-                      e.currentTarget.style.color = 'white';
-                    }}
                   >
-                    <span className="text-xs font-bold">T</span>
+                    <span className={`font-bold ${isMobile ? 'text-sm' : 'text-xs'}`}>T</span>
                   </button>
                   <button
                     onClick={() => addBlock(block.id, 'body')}
-                    className="w-6 h-6 rounded-full shadow-lg border-0 transition-all duration-200 flex items-center justify-center"
+                    className={`rounded-full shadow-lg border-0 transition-all duration-200 flex items-center justify-center bg-gray-800 text-white hover:bg-gray-600 ${
+                      isMobile ? 'w-8 h-8' : 'w-6 h-6'
+                    }`}
                     title="Add body block"
-                    style={{ 
-                      backgroundColor: '#111827',
-                      color: 'white'
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.backgroundColor = '#D1D5DB';
-                      e.currentTarget.style.color = 'black';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.backgroundColor = '#111827';
-                      e.currentTarget.style.color = 'white';
-                    }}
                   >
-                    <Plus className="w-3 h-3" />
+                    <Plus className={isMobile ? 'w-4 h-4' : 'w-3 h-3'} />
                   </button>
                   {blocks.length >= 0 && (
                     <button
                       onClick={() => deleteBlock(block.id)}
-                      className="w-6 h-6 rounded-full shadow-lg border-0 transition-all duration-200 flex items-center justify-center"
+                      className={`rounded-full shadow-lg border-0 transition-all duration-200 flex items-center justify-center bg-gray-800 text-white hover:bg-gray-600 ${
+                        isMobile ? 'w-8 h-8' : 'w-6 h-6'
+                      }`}
                       title="Delete block"
-                      style={{ 
-                        backgroundColor: '#111827',
-                        color: 'white'
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.backgroundColor = '#D1D5DB';
-                        e.currentTarget.style.color = 'black';
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.backgroundColor = '#111827';
-                        e.currentTarget.style.color = 'white';
-                      }}
                     >
-                      <ArrowRight className="w-3 h-3" />
+                      <ArrowRight className={isMobile ? 'w-4 h-4' : 'w-3 h-3'} />
                     </button>
                   )}
                 </motion.div>
