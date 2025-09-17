@@ -15,7 +15,7 @@ export const DEBUG_FLAGS = {
 
 interface Block {
   id: string;
-  type: 'title' | 'body' | 'type-picker';
+  type: 'title' | 'body' | 'markdown' | 'type-picker';
   content: string;
   tags: string[];
   focusMessage: string;
@@ -23,7 +23,7 @@ interface Block {
 
 export type BlockAction =
   | { type: 'UPDATE_BLOCK'; blockId: string; updates: Partial<Block> }
-  | { type: 'ADD_BLOCK'; afterId?: string; blockType: 'title' | 'body' | 'type-picker'; focusMessage: string }
+  | { type: 'ADD_BLOCK'; afterId?: string; blockType: 'title' | 'body' | 'markdown' | 'type-picker'; focusMessage: string }
   | { type: 'DELETE_BLOCK'; blockId: string }
   | { type: 'ADD_TAG'; blockId: string; tag: string }
   | { type: 'REMOVE_TAG'; blockId: string; tagIndex: number }
@@ -45,7 +45,7 @@ const blockReducer = (state: Block[], action: BlockAction): Block[] => {
       const newBlock: Block = {
         id: Date.now().toString(),
         type: action.blockType,
-        content: action.blockType === 'title' ? 'New Title' : action.blockType === 'body' ? 'New body text...' : '',
+        content: action.blockType === 'title' ? 'New Title' : action.blockType === 'body' ? 'New body text...' : action.blockType === 'markdown' ? '# New markdown content\n\nStart writing...' : '',
         tags: [],
         focusMessage: action.focusMessage
       };

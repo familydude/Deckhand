@@ -1,12 +1,12 @@
 import { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Plus, X, GripVertical, ArrowRight, Hash, Bookmark, AlignLeft } from 'lucide-react';
+import { Plus, X, GripVertical, ArrowRight, Hash, Bookmark, AlignLeft, FileText } from 'lucide-react';
 import { marked } from 'marked';
 import svgPaths from "../imports/svg-gsfv4q9vrt";
 
 interface Block {
   id: string;
-  type: 'title' | 'body' | 'type-picker';
+  type: 'title' | 'body' | 'markdown' | 'type-picker';
   content: string;
   tags: string[];
   focusMessage: string;
@@ -14,7 +14,7 @@ interface Block {
 
 export type BlockAction =
   | { type: 'UPDATE_BLOCK'; blockId: string; updates: Partial<Block> }
-  | { type: 'ADD_BLOCK'; afterId?: string; blockType: 'title' | 'body' | 'type-picker'; focusMessage: string }
+  | { type: 'ADD_BLOCK'; afterId?: string; blockType: 'title' | 'body' | 'markdown' | 'type-picker'; focusMessage: string }
   | { type: 'DELETE_BLOCK'; blockId: string }
   | { type: 'ADD_TAG'; blockId: string; tag: string }
   | { type: 'REMOVE_TAG'; blockId: string; tagIndex: number }
@@ -34,11 +34,9 @@ interface CardProps {
   isDesktop: boolean;
   hoveredBlock: string | null;
   setHoveredBlock: React.Dispatch<React.SetStateAction<string | null>>;
-  editingBlock: string | null;
-  setEditingBlock: React.Dispatch<React.SetStateAction<string | null>>;
   lastAddedBlockId: string | null;
   deletingBlockId: string | null;
-  onAddBlock: (afterId?: string, type?: 'title' | 'body' | 'type-picker') => void;
+  onAddBlock: (afterId?: string, type?: 'title' | 'body' | 'markdown' | 'type-picker') => void;
   onDeleteBlock: (id: string) => void;
 }
 
@@ -55,8 +53,6 @@ export function Card({
   isDesktop,
   hoveredBlock,
   setHoveredBlock,
-  editingBlock,
-  setEditingBlock,
   lastAddedBlockId,
   deletingBlockId,
   onAddBlock,
@@ -175,10 +171,10 @@ export function Card({
     setIsLongPressing(false);
   };
 
-  const handleTypeSelection = (selectedType: 'title' | 'body') => {
+  const handleTypeSelection = (selectedType: 'title' | 'body' | 'markdown') => {
     // Only set default content if the current content is empty (new type-picker block)
     const newContent = block.content.trim() === ''
-      ? (selectedType === 'title' ? 'New Title' : 'New body text...')
+      ? (selectedType === 'title' ? 'New Title' : selectedType === 'markdown' ? '# New markdown content\n\nStart writing...' : 'New body text...')
       : block.content;
 
     updateBlock(block.id, { type: selectedType, content: newContent });
@@ -200,6 +196,8 @@ export function Card({
         return <Bookmark className={`text-gray-600 ${isMobile ? 'w-3 h-3' : 'w-4 h-4'}`} />;
       } else if (block.type === 'body') {
         return <AlignLeft className={`text-gray-600 ${isMobile ? 'w-3 h-3' : 'w-4 h-4'}`} />;
+      } else if (block.type === 'markdown') {
+        return <FileText className={`text-gray-600 ${isMobile ? 'w-3 h-3' : 'w-4 h-4'}`} />;
       } else {
         // type-picker or unknown - show question mark
         return <span className={`text-gray-600 font-bold ${isMobile ? 'text-xs' : 'text-sm'}`}>?</span>;
@@ -233,14 +231,21 @@ export function Card({
         opacity: isDeletingBlock ? 0 : 1,
         y: 0,
         scale: 1,
-        x: isDeletingBlock ? 100 : (editingBlock === block.id ? -20 : 0)
+        x: isDeletingBlock ? 100 : 0
       }}
       exit={{ opacity: 0, x: 100, scale: 0.98 }}
       transition={{
         layout: { duration: 0.4, ease: "easeOut" },
-        opacity: { duration: isDeletingBlock ? 0.3 : (isNewBlock ? 0.8 : 0.3) },
-        scale: { duration: isDeletingBlock ? 0.3 : (isNewBlock ? 0.5 : 0.3) },
-        x: { duration: isDeletingBlock ? 0.3 : 0.25, ease: "easeOut" }
+        opacity: {
+          duration: isDeletingBlock ? 0.3 : (isNewBlock ? 0.4 : 0.3),
+          delay: isNewBlock ? 0.4 : 0
+        },
+        scale: {
+          duration: isDeletingBlock ? 0.3 : (isNewBlock ? 0.4 : 0.3),
+          delay: isNewBlock ? 0.4 : 0
+        },
+        x: { duration: isDeletingBlock ? 0.3 : 0.25, ease: "easeOut" },
+        y: { duration: 0.4, ease: "easeOut" }
       }}
       className={`relative ${isMobile ? 'mb-4' : 'mb-6'}`}
       onMouseEnter={() => setHoveredBlock(block.id)}
@@ -266,7 +271,7 @@ export function Card({
           {block.type === 'type-picker' ? (
             <div className="w-full flex flex-col gap-3">
               <div className="text-sm text-gray-600 font-medium">Choose block type:</div>
-              <div className="flex gap-2">
+              <div className="flex gap-2 flex-wrap">
                 <button
                   onClick={() => handleTypeSelection('title')}
                   className={`flex items-center gap-2 px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors ${
@@ -285,15 +290,39 @@ export function Card({
                   <AlignLeft className={isMobile ? 'w-4 h-4' : 'w-5 h-5'} />
                   Body Text
                 </button>
+                <button
+                  onClick={() => handleTypeSelection('markdown')}
+                  className={`flex items-center gap-2 px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors ${
+                    isMobile ? 'text-sm' : 'text-base'
+                  }`}
+                >
+                  <FileText className={isMobile ? 'w-4 h-4' : 'w-5 h-5'} />
+                  Markdown
+                </button>
               </div>
             </div>
-          ) : editingBlock === block.id ? (
+          ) : block.type === 'markdown' ? (
+            <div
+              onClick={() => {
+                updateBlock(block.id, { type: 'body' });
+                setFocusedBlockId(block.id);
+              }}
+              className={`w-full cursor-text min-h-[1.5rem] markdown-content ${
+                isMobile
+                  ? 'text-sm text-gray-600 leading-relaxed'
+                  : isTablet
+                    ? 'text-sm text-gray-600 leading-relaxed'
+                    : 'text-base text-gray-600 leading-relaxed'
+              }`}
+              dangerouslySetInnerHTML={{
+                __html: renderMarkdown(block.content)
+              }}
+            />
+          ) : (
             <textarea
               ref={(textarea) => {
                 if (textarea) {
                   autoResizeTextarea(textarea);
-                  // Auto-focus when entering edit mode
-                  setTimeout(() => textarea.focus(), 0);
                 }
               }}
               value={block.content}
@@ -302,12 +331,7 @@ export function Card({
                 autoResizeTextarea(e.target);
               }}
               onFocus={() => {
-                setEditingBlock(block.id);
                 setFocusedBlockId(block.id);
-              }}
-              onBlur={() => {
-                setEditingBlock(null);
-                // Don't clear focused block on blur - keep focus message visible
               }}
               onKeyDown={(e) => handleKeyDown(e, block.id)}
               className={`w-full bg-transparent border-none outline-none resize-none overflow-hidden cursor-text ${
@@ -324,31 +348,6 @@ export function Card({
                       : 'text-base text-gray-600 leading-relaxed'
               }`}
               style={{ minHeight: block.type === 'title' ? '2.25rem' : '1.5rem' }}
-            />
-          ) : (
-            <div
-              onClick={() => {
-                if (block.type !== 'type-picker') {
-                  setEditingBlock(block.id);
-                  setFocusedBlockId(block.id);
-                }
-              }}
-              className={`w-full cursor-text min-h-[1.5rem] markdown-content ${
-                block.type === 'title'
-                  ? isMobile
-                    ? 'text-lg font-semibold text-gray-900 tracking-tight'
-                    : isTablet
-                      ? 'text-xl font-semibold text-gray-900 tracking-tight'
-                      : 'text-2xl font-semibold text-gray-900 tracking-tight'
-                  : isMobile
-                    ? 'text-sm text-gray-600 leading-relaxed'
-                    : isTablet
-                      ? 'text-sm text-gray-600 leading-relaxed'
-                      : 'text-base text-gray-600 leading-relaxed'
-              }`}
-              dangerouslySetInnerHTML={{
-                __html: renderMarkdown(block.content)
-              }}
             />
           )}
 

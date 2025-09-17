@@ -7,7 +7,7 @@ import { Plus, Type, AlignLeft } from 'lucide-react';
 
 interface Block {
   id: string;
-  type: 'title' | 'body';
+  type: 'title' | 'body' | 'markdown' | 'type-picker';
   content: string;
   tags: string[];
   focusMessage: string;
@@ -26,11 +26,10 @@ interface TextEditorProps {
 
 export function TextEditor({ blocks, dispatch, focusedBlockId, setFocusedBlockId, focusPrompts, isMobile, isTablet, isDesktop }: TextEditorProps) {
   const [hoveredBlock, setHoveredBlock] = useState<string | null>(null);
-  const [editingBlock, setEditingBlock] = useState<string | null>(null);
   const [lastAddedBlockId, setLastAddedBlockId] = useState<string | null>(null);
   const [deletingBlockId, setDeletingBlockId] = useState<string | null>(null);
 
-  const addBlock = (afterId?: string, type: 'title' | 'body' = 'body') => {
+  const addBlock = (afterId?: string, type: 'title' | 'body' | 'markdown' | 'type-picker' = 'body') => {
     const newBlockId = Date.now().toString();
     setLastAddedBlockId(newBlockId);
 
@@ -124,8 +123,6 @@ export function TextEditor({ blocks, dispatch, focusedBlockId, setFocusedBlockId
             isDesktop={isDesktop}
             hoveredBlock={hoveredBlock}
             setHoveredBlock={setHoveredBlock}
-            editingBlock={editingBlock}
-            setEditingBlock={setEditingBlock}
             lastAddedBlockId={lastAddedBlockId}
             deletingBlockId={deletingBlockId}
             onAddBlock={addBlock}
