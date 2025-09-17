@@ -176,39 +176,58 @@ export function Card({
   };
 
   const handleTypeSelection = (selectedType: 'title' | 'body') => {
-    updateBlock(block.id, { type: selectedType, content: selectedType === 'title' ? 'New Title' : 'New body text...' });
+    // Only set default content if the current content is empty (new type-picker block)
+    const newContent = block.content.trim() === ''
+      ? (selectedType === 'title' ? 'New Title' : 'New body text...')
+      : block.content;
+
+    updateBlock(block.id, { type: selectedType, content: newContent });
   };
 
   const handleInfoClick = () => {
     if (block.type !== 'type-picker') {
-      updateBlock(block.id, { type: 'type-picker', content: '' });
+      // Preserve content when switching to type-picker mode
+      updateBlock(block.id, { type: 'type-picker' });
     } else {
       setFocusedBlockId(block.id);
     }
   };
 
-  const Info: React.FC<{ isActive?: boolean; isMobile?: boolean; blockId?: string }> = ({ isActive = false, isMobile = false, blockId }) => (
-    <div
-      className={`relative shrink-0 cursor-pointer ${isMobile ? 'size-6' : 'size-8'}`}
-      onClick={handleInfoClick}
-    >
-      {isActive ? (
-        // Arrow icon for focused block (matches focus banner)
-        <div className={`bg-gray-100 rounded-full flex items-center justify-center ${
-          blockId === focusedBlockId ? 'ring-2 ring-blue-500' : ''
-        } ${isMobile ? 'w-6 h-6' : 'w-8 h-8'}`}>
-          <ArrowRight className={`text-gray-600 ${isMobile ? 'w-3 h-3' : 'w-4 h-4'}`} />
-        </div>
-      ) : (
-        // Regular info icon for non-focused blocks
-        <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 32 32">
-          <g>
-            <path d={svgPaths.p1ab63f00} stroke="var(--stroke-0, #1E1E1E)" strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" />
-          </g>
-        </svg>
-      )}
-    </div>
-  );
+  const Info: React.FC<{ isActive?: boolean; isMobile?: boolean; blockId?: string }> = ({ isActive = false, isMobile = false, blockId }) => {
+    const getIcon = () => {
+      if (block.type === 'title') {
+        return <Bookmark className={`text-gray-600 ${isMobile ? 'w-3 h-3' : 'w-4 h-4'}`} />;
+      } else if (block.type === 'body') {
+        return <AlignLeft className={`text-gray-600 ${isMobile ? 'w-3 h-3' : 'w-4 h-4'}`} />;
+      } else {
+        // type-picker or unknown - show question mark
+        return <span className={`text-gray-600 font-bold ${isMobile ? 'text-xs' : 'text-sm'}`}>?</span>;
+      }
+    };
+
+    return (
+      <div
+        className={`relative shrink-0 cursor-pointer ${isMobile ? 'size-6' : 'size-8'}`}
+        onClick={handleInfoClick}
+      >
+        {isActive ? (
+          // Arrow icon for focused block (matches focus banner)
+          <div className={`bg-gray-100 rounded-full flex items-center justify-center ${
+            blockId === focusedBlockId ? 'ring-2 ring-blue-500' : ''
+          } ${isMobile ? 'w-6 h-6' : 'w-8 h-8'}`}>
+            <ArrowRight className={`text-gray-600 ${isMobile ? 'w-3 h-3' : 'w-4 h-4'}`} />
+          </div>
+        ) : (
+          // Circle with type-specific icon
+          <div className={`bg-gray-100 rounded-full flex items-center justify-center ${
+            isMobile ? 'w-6 h-6' : 'w-8 h-8'
+          }`}>
+            {getIcon()}
+          </div>
+        )}
+      </div>
+    );
+  };
 
   const isNewBlock = block.id === lastAddedBlockId;
   const isDeletingBlock = block.id === deletingBlockId;
