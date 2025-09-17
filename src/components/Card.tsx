@@ -193,7 +193,7 @@ export function Card({
     }
   };
 
-  const Info: React.FC<{ isActive?: boolean; isMobile?: boolean; blockId?: string }> = ({ isActive = false, isMobile = false, blockId }) => {
+  const Info: React.FC<{ isMobile?: boolean; blockId?: string }> = ({ isMobile = false, blockId }) => {
     const getIcon = () => {
       if (block.type === 'title') {
         return <Bookmark className={`text-gray-600 ${isMobile ? 'w-3 h-3' : 'w-4 h-4'}`} />;
@@ -210,21 +210,11 @@ export function Card({
         className={`relative shrink-0 cursor-pointer ${isMobile ? 'size-6' : 'size-8'}`}
         onClick={handleInfoClick}
       >
-        {isActive ? (
-          // Arrow icon for focused block (matches focus banner)
-          <div className={`bg-gray-100 rounded-full flex items-center justify-center ${
-            blockId === focusedBlockId ? 'ring-2 ring-blue-500' : ''
-          } ${isMobile ? 'w-6 h-6' : 'w-8 h-8'}`}>
-            <ArrowRight className={`text-gray-600 ${isMobile ? 'w-3 h-3' : 'w-4 h-4'}`} />
-          </div>
-        ) : (
-          // Circle with type-specific icon
-          <div className={`bg-gray-100 rounded-full flex items-center justify-center ${
-            isMobile ? 'w-6 h-6' : 'w-8 h-8'
-          }`}>
-            {getIcon()}
-          </div>
-        )}
+        <div className={`bg-gray-100 rounded-full flex items-center justify-center ${
+          blockId === focusedBlockId ? 'ring-2 ring-blue-500' : ''
+        } ${isMobile ? 'w-6 h-6' : 'w-8 h-8'}`}>
+          {getIcon()}
+        </div>
       </div>
     );
   };
@@ -268,7 +258,7 @@ export function Card({
           <GripVertical className="w-5 h-5 text-gray-400 cursor-grab" />
         </div>
 
-        <Info isActive={block.id === focusedBlockId} isMobile={isMobile} blockId={block.id} />
+        <Info isMobile={isMobile} blockId={block.id} />
 
         <div className={`basis-0 content-stretch flex flex-col grow items-start justify-start min-h-px min-w-40 relative shrink-0 ${
           isMobile ? 'gap-3' : isTablet ? 'gap-6' : 'gap-4'
