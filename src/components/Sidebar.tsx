@@ -6,7 +6,7 @@ import svgPaths from "../imports/svg-gsfv4q9vrt";
 
 interface Block {
   id: string;
-  type: 'title' | 'body';
+  type: 'title' | 'body' | 'type-picker';
   content: string;
   tags: string[];
 }
@@ -135,17 +135,23 @@ export function Sidebar({ blocks, onBlockClick, dispatch, activeTab, setActiveTa
                     <div className={`flex items-start ${isMobile ? 'gap-2' : 'gap-3'}`}>
                       {block.type === 'title' ? (
                         <Bookmark className={`text-gray-600 mt-0.5 shrink-0 ${isMobile ? 'w-4 h-4' : 'w-5 h-5'}`} />
+                      ) : block.type === 'type-picker' ? (
+                        <div className={`text-gray-400 mt-0.5 shrink-0 ${isMobile ? 'w-4 h-4 text-xs' : 'w-5 h-5 text-sm'} flex items-center justify-center font-bold`}>
+                          ?
+                        </div>
                       ) : (
                         <AlignLeft className={`text-gray-600 mt-0.5 shrink-0 ${isMobile ? 'w-4 h-4' : 'w-5 h-5'}`} />
                       )}
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between">
                           <div className={`truncate ${
-                            block.type === 'title' ? 'text-gray-900' : 'text-gray-700'
+                            block.type === 'title' ? 'text-gray-900' : block.type === 'type-picker' ? 'text-gray-400' : 'text-gray-700'
                           } ${isMobile ? 'text-sm font-medium' : 'font-medium'}`}>
-                            {block.content.length > (isMobile ? 20 : 25) ?
-                              block.content.substring(0, isMobile ? 20 : 25) + '...' :
-                              block.content}
+                            {block.type === 'type-picker' ? 'Choose type...' : (
+                              block.content.length > (isMobile ? 20 : 25) ?
+                                block.content.substring(0, isMobile ? 20 : 25) + '...' :
+                                block.content
+                            )}
                           </div>
                           <ArrowRight className={`text-gray-400 ml-2 shrink-0 ${isMobile ? 'w-3 h-3' : 'w-4 h-4'}`} />
                         </div>

@@ -1,12 +1,12 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Plus, X, GripVertical, ArrowRight, Hash } from 'lucide-react';
+import { Plus, X, GripVertical, ArrowRight, Hash, Bookmark, AlignLeft } from 'lucide-react';
 import { marked } from 'marked';
 import svgPaths from "../imports/svg-gsfv4q9vrt";
 
 interface Block {
   id: string;
-  type: 'title' | 'body';
+  type: 'title' | 'body' | 'type-picker';
   content: string;
   tags: string[];
   focusMessage: string;
@@ -14,7 +14,7 @@ interface Block {
 
 export type BlockAction =
   | { type: 'UPDATE_BLOCK'; blockId: string; updates: Partial<Block> }
-  | { type: 'ADD_BLOCK'; afterId?: string; blockType: 'title' | 'body'; focusMessage: string }
+  | { type: 'ADD_BLOCK'; afterId?: string; blockType: 'title' | 'body' | 'type-picker'; focusMessage: string }
   | { type: 'DELETE_BLOCK'; blockId: string }
   | { type: 'ADD_TAG'; blockId: string; tag: string }
   | { type: 'REMOVE_TAG'; blockId: string; tagIndex: number }
@@ -38,7 +38,7 @@ interface CardProps {
   setEditingBlock: React.Dispatch<React.SetStateAction<string | null>>;
   lastAddedBlockId: string | null;
   deletingBlockId: string | null;
-  onAddBlock: (afterId?: string, type?: 'title' | 'body') => void;
+  onAddBlock: (afterId?: string, type?: 'title' | 'body' | 'type-picker') => void;
   onDeleteBlock: (id: string) => void;
 }
 
@@ -64,6 +64,8 @@ export function Card({
 }: CardProps) {
   const [newTag, setNewTag] = useState('');
   const [addingTagToBlock, setAddingTagToBlock] = useState<string | null>(null);
+  const longPressTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const [isLongPressing, setIsLongPressing] = useState(false);
 
   // Auto-resize textarea function
   const autoResizeTextarea = (textarea: HTMLTextAreaElement) => {
@@ -145,8 +147,51 @@ export function Card({
     dispatch({ type: 'REMOVE_TAG', blockId, tagIndex });
   };
 
+  const handlePlusMouseDown = () => {
+    setIsLongPressing(false);
+    longPressTimerRef.current = setTimeout(() => {
+      setIsLongPressing(true);
+      onAddBlock(block.id, 'type-picker');
+    }, 500); // 500ms long press
+  };
+
+  const handlePlusMouseUp = () => {
+    if (longPressTimerRef.current) {
+      clearTimeout(longPressTimerRef.current);
+      longPressTimerRef.current = null;
+    }
+    if (!isLongPressing) {
+      // Normal click - create body block
+      onAddBlock(block.id, 'body');
+    }
+    setIsLongPressing(false);
+  };
+
+  const handlePlusMouseLeave = () => {
+    if (longPressTimerRef.current) {
+      clearTimeout(longPressTimerRef.current);
+      longPressTimerRef.current = null;
+    }
+    setIsLongPressing(false);
+  };
+
+  const handleTypeSelection = (selectedType: 'title' | 'body') => {
+    updateBlock(block.id, { type: selectedType, content: selectedType === 'title' ? 'New Title' : 'New body text...' });
+  };
+
+  const handleInfoClick = () => {
+    if (block.type !== 'type-picker') {
+      updateBlock(block.id, { type: 'type-picker', content: '' });
+    } else {
+      setFocusedBlockId(block.id);
+    }
+  };
+
   const Info: React.FC<{ isActive?: boolean; isMobile?: boolean; blockId?: string }> = ({ isActive = false, isMobile = false, blockId }) => (
-    <div className={`relative shrink-0 ${isMobile ? 'size-6' : 'size-8'}`}>
+    <div
+      className={`relative shrink-0 cursor-pointer ${isMobile ? 'size-6' : 'size-8'}`}
+      onClick={handleInfoClick}
+    >
       {isActive ? (
         // Arrow icon for focused block (matches focus banner)
         <div className={`bg-gray-100 rounded-full flex items-center justify-center ${
@@ -209,8 +254,32 @@ export function Card({
         <div className={`basis-0 content-stretch flex flex-col grow items-start justify-start min-h-px min-w-40 relative shrink-0 ${
           isMobile ? 'gap-3' : isTablet ? 'gap-6' : 'gap-4'
         }`}>
-          {/* Editable content or Preview */}
-          {editingBlock === block.id ? (
+          {/* Content: Type-Picker or Editable content or Preview */}
+          {block.type === 'type-picker' ? (
+            <div className="w-full flex flex-col gap-3">
+              <div className="text-sm text-gray-600 font-medium">Choose block type:</div>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => handleTypeSelection('title')}
+                  className={`flex items-center gap-2 px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors ${
+                    isMobile ? 'text-sm' : 'text-base'
+                  }`}
+                >
+                  <Bookmark className={isMobile ? 'w-4 h-4' : 'w-5 h-5'} />
+                  Header
+                </button>
+                <button
+                  onClick={() => handleTypeSelection('body')}
+                  className={`flex items-center gap-2 px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors ${
+                    isMobile ? 'text-sm' : 'text-base'
+                  }`}
+                >
+                  <AlignLeft className={isMobile ? 'w-4 h-4' : 'w-5 h-5'} />
+                  Body Text
+                </button>
+              </div>
+            </div>
+          ) : editingBlock === block.id ? (
             <textarea
               ref={(textarea) => {
                 if (textarea) {
@@ -251,8 +320,10 @@ export function Card({
           ) : (
             <div
               onClick={() => {
-                setEditingBlock(block.id);
-                setFocusedBlockId(block.id);
+                if (block.type !== 'type-picker') {
+                  setEditingBlock(block.id);
+                  setFocusedBlockId(block.id);
+                }
               }}
               className={`w-full cursor-text min-h-[1.5rem] markdown-content ${
                 block.type === 'title'
@@ -347,20 +418,15 @@ export function Card({
             }`}
           >
             <button
-              onClick={() => onAddBlock(block.id, 'title')}
+              onMouseDown={handlePlusMouseDown}
+              onMouseUp={handlePlusMouseUp}
+              onMouseLeave={handlePlusMouseLeave}
+              onTouchStart={handlePlusMouseDown}
+              onTouchEnd={handlePlusMouseUp}
               className={`rounded-full shadow-lg border-0 transition-all duration-200 flex items-center justify-center bg-gray-800 text-white hover:bg-gray-600 ${
                 isMobile ? 'w-8 h-8' : 'w-6 h-6'
               }`}
-              title="Add title block"
-            >
-              <span className={`font-bold ${isMobile ? 'text-sm' : 'text-xs'}`}>T</span>
-            </button>
-            <button
-              onClick={() => onAddBlock(block.id, 'body')}
-              className={`rounded-full shadow-lg border-0 transition-all duration-200 flex items-center justify-center bg-gray-800 text-white hover:bg-gray-600 ${
-                isMobile ? 'w-8 h-8' : 'w-6 h-6'
-              }`}
-              title="Add body block"
+              title="Add body block (long press for type picker)"
             >
               <Plus className={isMobile ? 'w-4 h-4' : 'w-3 h-3'} />
             </button>

@@ -10,15 +10,15 @@ import { useResponsive } from './hooks/useResponsive';
 
 interface Block {
   id: string;
-  type: 'title' | 'body';
+  type: 'title' | 'body' | 'type-picker';
   content: string;
   tags: string[];
   focusMessage: string;
 }
 
-export type BlockAction = 
+export type BlockAction =
   | { type: 'UPDATE_BLOCK'; blockId: string; updates: Partial<Block> }
-  | { type: 'ADD_BLOCK'; afterId?: string; blockType: 'title' | 'body'; focusMessage: string }
+  | { type: 'ADD_BLOCK'; afterId?: string; blockType: 'title' | 'body' | 'type-picker'; focusMessage: string }
   | { type: 'DELETE_BLOCK'; blockId: string }
   | { type: 'ADD_TAG'; blockId: string; tag: string }
   | { type: 'REMOVE_TAG'; blockId: string; tagIndex: number }
@@ -40,7 +40,7 @@ const blockReducer = (state: Block[], action: BlockAction): Block[] => {
       const newBlock: Block = {
         id: Date.now().toString(),
         type: action.blockType,
-        content: action.blockType === 'title' ? 'New Title' : 'New body text...',
+        content: action.blockType === 'title' ? 'New Title' : action.blockType === 'body' ? 'New body text...' : '',
         tags: [],
         focusMessage: action.focusMessage
       };
