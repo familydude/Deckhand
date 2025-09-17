@@ -185,11 +185,12 @@ export function Card({
   };
 
   const handleInfoClick = () => {
+    // Always set this card as the focused card
+    setFocusedBlockId(block.id);
+
     if (block.type !== 'type-picker') {
       // Preserve content when switching to type-picker mode
       updateBlock(block.id, { type: 'type-picker' });
-    } else {
-      setFocusedBlockId(block.id);
     }
   };
 
@@ -210,9 +211,7 @@ export function Card({
         className={`relative shrink-0 cursor-pointer ${isMobile ? 'size-6' : 'size-8'}`}
         onClick={handleInfoClick}
       >
-        <div className={`bg-gray-100 rounded-full flex items-center justify-center ${
-          blockId === focusedBlockId ? 'ring-2 ring-blue-500' : ''
-        } ${isMobile ? 'w-6 h-6' : 'w-8 h-8'}`}>
+        <div className={`bg-gray-100 rounded-full flex items-center justify-center ${isMobile ? 'w-6 h-6' : 'w-8 h-8'}`}>
           {getIcon()}
         </div>
       </div>
@@ -234,14 +233,14 @@ export function Card({
         opacity: isDeletingBlock ? 0 : 1,
         y: 0,
         scale: 1,
-        x: isDeletingBlock ? 100 : 0
+        x: isDeletingBlock ? 100 : (editingBlock === block.id ? -20 : 0)
       }}
       exit={{ opacity: 0, x: 100, scale: 0.98 }}
       transition={{
         layout: { duration: 0.4, ease: "easeOut" },
         opacity: { duration: isDeletingBlock ? 0.3 : (isNewBlock ? 0.8 : 0.3) },
         scale: { duration: isDeletingBlock ? 0.3 : (isNewBlock ? 0.5 : 0.3) },
-        x: { duration: 0.3, ease: "easeOut" }
+        x: { duration: isDeletingBlock ? 0.3 : 0.25, ease: "easeOut" }
       }}
       className={`relative ${isMobile ? 'mb-4' : 'mb-6'}`}
       onMouseEnter={() => setHoveredBlock(block.id)}

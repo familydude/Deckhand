@@ -92,7 +92,9 @@ export function FocusBanner({
                 duration: 0.2,
                 ease: "easeInOut"
               }}
-              className={`font-semibold text-gray-900 cursor-text truncate w-full ${
+              className={`font-semibold cursor-text truncate w-full ${
+                focusedBlockId ? 'text-blue-500' : 'text-gray-900'
+              } ${
                 isMobile ? 'text-base' : isTablet ? 'text-xl' : 'text-2xl'
               }`}
               onClick={(e) => {
@@ -103,7 +105,7 @@ export function FocusBanner({
 
                 const input = document.createElement('input');
                 input.value = focusedBlock.focusMessage;
-                input.className = 'text-2xl font-semibold text-gray-900 bg-transparent border-none outline-none w-full';
+                input.className = 'text-2xl font-semibold text-blue-500 bg-transparent border-none outline-none w-full';
                 input.onblur = () => {
                   dispatch({
                     type: 'UPDATE_BLOCK',
