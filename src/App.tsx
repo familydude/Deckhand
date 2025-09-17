@@ -8,6 +8,11 @@ import { FocusBanner } from './components/FocusBanner';
 import { Settings } from './components/Settings';
 import { useResponsive } from './hooks/useResponsive';
 
+export const DEBUG_FLAGS = {
+  DISPATCH_DEBUG: false,
+  FILE_DEBUG: false,
+} as const;
+
 interface Block {
   id: string;
   type: 'title' | 'body' | 'type-picker';
@@ -26,7 +31,7 @@ export type BlockAction =
   | { type: 'LOAD_DOCUMENT'; blocks: Block[] };
 
 const blockReducer = (state: Block[], action: BlockAction): Block[] => {
-  console.log('Reducer called with action:', action.type, action); // Debug log
+  if (DEBUG_FLAGS.DISPATCH_DEBUG) console.log('Reducer called with action:', action.type, action);
   
   switch (action.type) {
     case 'UPDATE_BLOCK':
@@ -73,15 +78,15 @@ const blockReducer = (state: Block[], action: BlockAction): Block[] => {
       );
     
     case 'REORDER_BLOCKS':
-      console.log('REORDER_BLOCKS - reordering to:', action.blocks); // Debug log
+      if (DEBUG_FLAGS.DISPATCH_DEBUG) console.log('REORDER_BLOCKS - reordering to:', action.blocks);
       return action.blocks;
     
     case 'LOAD_DOCUMENT':
-      console.log('LOAD_DOCUMENT - replacing blocks with:', action.blocks); // Debug log
+      if (DEBUG_FLAGS.DISPATCH_DEBUG) console.log('LOAD_DOCUMENT - replacing blocks with:', action.blocks);
       return action.blocks;
     
     default:
-      console.log('Unknown action type:', action); // Debug log
+      if (DEBUG_FLAGS.DISPATCH_DEBUG) console.log('Unknown action type:', action);
       return state;
   }
 };

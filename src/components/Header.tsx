@@ -1,6 +1,7 @@
 import { motion } from 'motion/react';
 import { Download, Upload, FileText, FilePlus } from 'lucide-react';
 import { useResponsive } from '../hooks/useResponsive';
+import { DEBUG_FLAGS } from '../App';
 
 interface Block {
   id: string;
@@ -27,7 +28,7 @@ export function Header({ activeTab, setActiveTab, title, setTitle, blocks, dispa
 
   // Save document as JSON
   const saveDocument = () => {
-    console.log('Save called - title:', title, 'blocks:', blocks); // Debug log
+    if (DEBUG_FLAGS.FILE_DEBUG) console.log('Save called - title:', title, 'blocks:', blocks);
     
     const documentData = {
       title: title || 'Untitled Document',
@@ -36,7 +37,7 @@ export function Header({ activeTab, setActiveTab, title, setTitle, blocks, dispa
       createdAt: new Date().toISOString()
     };
 
-    console.log('Document data:', documentData); // Debug log
+    if (DEBUG_FLAGS.FILE_DEBUG) console.log('Document data:', documentData);
 
     const jsonString = JSON.stringify(documentData, null, 2);
     const blob = new Blob([jsonString], { type: 'application/json' });
@@ -56,37 +57,37 @@ export function Header({ activeTab, setActiveTab, title, setTitle, blocks, dispa
 
   // Load document from JSON file
   const loadDocument = () => {
-    console.log('Load document clicked'); // Debug log
+    if (DEBUG_FLAGS.FILE_DEBUG) console.log('Load document clicked');
     const input = document.createElement('input');
     input.type = 'file';
     input.accept = '.json';
     input.onchange = (e) => {
-      console.log('File selected'); // Debug log
+      if (DEBUG_FLAGS.FILE_DEBUG) console.log('File selected');
       const file = (e.target as HTMLInputElement).files?.[0];
       if (!file) return;
 
       const reader = new FileReader();
       reader.onload = (event) => {
         try {
-          console.log('File read successfully'); // Debug log
+          if (DEBUG_FLAGS.FILE_DEBUG) console.log('File read successfully');
           const content = event.target?.result as string;
           const documentData = JSON.parse(content);
           
-          console.log('Parsed document data:', documentData); // Debug log
+          if (DEBUG_FLAGS.FILE_DEBUG) console.log('Parsed document data:', documentData);
           
           // Validate the structure
           if (documentData.title && documentData.blocks && Array.isArray(documentData.blocks)) {
-            console.log('Loading document with blocks:', documentData.blocks); // Debug log
+            if (DEBUG_FLAGS.FILE_DEBUG) console.log('Loading document with blocks:', documentData.blocks);
             setTitle(documentData.title);
             setFocusedBlockId(null); // Clear focused block when loading new document
             dispatch({ type: 'LOAD_DOCUMENT', blocks: documentData.blocks });
-            console.log('Dispatch called with LOAD_DOCUMENT'); // Debug log
+            if (DEBUG_FLAGS.FILE_DEBUG) console.log('Dispatch called with LOAD_DOCUMENT');
           } else {
-            console.log('Invalid document structure:', documentData); // Debug log
+            if (DEBUG_FLAGS.FILE_DEBUG) console.log('Invalid document structure:', documentData);
             alert('Invalid document format. Expected title and blocks array.');
           }
         } catch (error) {
-          console.log('Error parsing JSON:', error); // Debug log
+          if (DEBUG_FLAGS.FILE_DEBUG) console.log('Error parsing JSON:', error);
           alert('Error reading file: ' + error);
         }
       };
