@@ -5,6 +5,7 @@ import { Header } from './components/Header';
 import { Sidebar } from './components/Sidebar';
 import { TextEditor } from './components/TextEditor';
 import { Settings } from './components/Settings';
+import DesktopOnlyMessage from './components/DesktopOnlyMessage';
 import { useResponsive } from './hooks/useResponsive';
 
 export const DEBUG_FLAGS = {
@@ -178,6 +179,11 @@ export default function App() {
     dispatch({ type: 'LOAD_DOCUMENT', blocks: [] });
   };
 
+  // Show desktop-only message for mobile and tablet
+  if (isMobile || isTablet) {
+    return <DesktopOnlyMessage />;
+  }
+
   return (
     <div className="h-screen flex flex-col bg-gray-50">
       <Header
@@ -189,98 +195,50 @@ export default function App() {
         dispatch={dispatch}
         clearBlocks={clearBlocks}
       />
-      
-      <div className="flex-1 flex overflow-hidden">
-        {/* Sidebar - Desktop: Sliding, Mobile/Tablet: Overlay */}
-        {isDesktop ? (
-          <motion.div
-            initial={false}
-            animate={{
-              x: sidebarVisible ? 0 : -280,
-              opacity: sidebarVisible ? 1 : 0
-            }}
-            transition={{ type: "spring", stiffness: 300, damping: 30 }}
-            className="relative z-10 h-full"
-          >
-            <Sidebar
-              blocks={blocks}
-              onBlockClick={handleBlockClick}
-              dispatch={dispatch}
-              activeTab={activeTab}
-              setActiveTab={setActiveTab}
-              title={title}
-              setTitle={setTitle}
-              onToggle={toggleSidebar}
-              isMobile={isMobile}
-              isTablet={isTablet}
-              isDesktop={isDesktop}
-            />
-          </motion.div>
-        ) : (
-          <AnimatePresence>
-            {sidebarVisible && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="fixed inset-0 z-50"
-              >
-                {/* Backdrop */}
-                <div
-                  className="absolute inset-0 bg-black/25"
-                  onClick={toggleSidebar}
-                />
 
-                {/* Sidebar */}
-                <motion.div
-                  initial={{ x: -280 }}
-                  animate={{ x: 0 }}
-                  exit={{ x: -280 }}
-                  className="absolute left-0 top-0 h-full w-64 shadow-xl"
-                >
-                  <Sidebar
-                    blocks={blocks}
-                    onBlockClick={handleBlockClick}
-                    dispatch={dispatch}
-                    activeTab={activeTab}
-                    setActiveTab={setActiveTab}
-                    title={title}
-                    setTitle={setTitle}
-                    onToggle={toggleSidebar}
-                    isMobile={isMobile}
-                    isTablet={isTablet}
-                    isDesktop={isDesktop}
-                  />
-                </motion.div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        )}
+      <div className="flex-1 flex overflow-hidden">
+        {/* Sidebar - Desktop only */}
+        <motion.div
+          initial={false}
+          animate={{
+            x: sidebarVisible ? 0 : -280,
+            opacity: sidebarVisible ? 1 : 0
+          }}
+          transition={{ type: "spring", stiffness: 300, damping: 30 }}
+          className="relative z-10 h-full"
+        >
+          <Sidebar
+            blocks={blocks}
+            onBlockClick={handleBlockClick}
+            dispatch={dispatch}
+            activeTab={activeTab}
+            setActiveTab={setActiveTab}
+            title={title}
+            setTitle={setTitle}
+            onToggle={toggleSidebar}
+            isMobile={isMobile}
+            isTablet={isTablet}
+            isDesktop={isDesktop}
+          />
+        </motion.div>
 
         {/* Main Content */}
         <motion.div
           ref={mainRef}
           initial={false}
           animate={{
-            x: isDesktop && sidebarVisible ? 0 : isDesktop ? -256 : 0,
+            x: sidebarVisible ? 0 : -256,
           }}
           transition={{ type: "spring", stiffness: 300, damping: 30 }}
           className="flex-1 flex flex-col overflow-hidden"
-          onTouchStart={handleTouchStart}
-          onTouchMove={handleTouchMove}
-          onTouchEnd={handleTouchEnd}
         >
           {activeTab === 'Settings' ? (
             <Settings />
           ) : (
             <>
-              {/* Editor Content - Responsive spacing and max-width */}
-              <div className={`flex-1 overflow-auto ${
-                isMobile ? 'p-3' : isTablet ? 'p-4' : 'p-8'
-              }`}>
-                <div className={`mx-auto ${
-                  isMobile ? 'max-w-none' : isTablet ? 'max-w-3xl' : 'max-w-4xl'
-                }`}>
+              {/* Editor Content */}
+              <div className="flex-1 overflow-auto p-8">
+                <div className="mx-auto max-w-4xl">
                   <TextEditor
                     key="main-editor"
                     blocks={blocks}
@@ -295,8 +253,8 @@ export default function App() {
           )}
         </motion.div>
 
-        {/* Floating Menu Toggle Button - Desktop only when sidebar closed */}
-        {isDesktop && !sidebarVisible && (
+        {/* Floating Menu Toggle Button - When sidebar closed */}
+        {!sidebarVisible && (
           <motion.button
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
