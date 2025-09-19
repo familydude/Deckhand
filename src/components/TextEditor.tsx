@@ -10,21 +10,17 @@ interface Block {
   type: 'title' | 'body' | 'markdown' | 'type-picker';
   content: string;
   tags: string[];
-  focusMessage: string;
 }
 
 interface TextEditorProps {
   blocks: Block[];
   dispatch: React.Dispatch<BlockAction>;
-  focusedBlockId: string | null;
-  setFocusedBlockId: React.Dispatch<React.SetStateAction<string | null>>;
-  focusPrompts: string[];
   isMobile: boolean;
   isTablet: boolean;
   isDesktop: boolean;
 }
 
-export function TextEditor({ blocks, dispatch, focusedBlockId, setFocusedBlockId, focusPrompts, isMobile, isTablet, isDesktop }: TextEditorProps) {
+export function TextEditor({ blocks, dispatch, isMobile, isTablet, isDesktop }: TextEditorProps) {
   const [hoveredBlock, setHoveredBlock] = useState<string | null>(null);
   const [lastAddedBlockId, setLastAddedBlockId] = useState<string | null>(null);
   const [deletingBlockId, setDeletingBlockId] = useState<string | null>(null);
@@ -33,14 +29,11 @@ export function TextEditor({ blocks, dispatch, focusedBlockId, setFocusedBlockId
     const newBlockId = Date.now().toString();
     setLastAddedBlockId(newBlockId);
 
-    // Generate random focus message using the passed focusPrompts
-    const randomFocusMessage = focusPrompts[Math.floor(Math.random() * focusPrompts.length)];
-
     dispatch({
       type: 'ADD_BLOCK',
       afterId,
       blockType: type,
-      focusMessage: randomFocusMessage
+      blockId: newBlockId
     });
 
     // Keep the scrolling logic the same
@@ -115,9 +108,6 @@ export function TextEditor({ blocks, dispatch, focusedBlockId, setFocusedBlockId
             index={index}
             blocks={blocks}
             dispatch={dispatch}
-            focusedBlockId={focusedBlockId}
-            setFocusedBlockId={setFocusedBlockId}
-            focusPrompts={focusPrompts}
             isMobile={isMobile}
             isTablet={isTablet}
             isDesktop={isDesktop}

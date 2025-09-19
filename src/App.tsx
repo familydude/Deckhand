@@ -4,7 +4,6 @@ import { Menu } from 'lucide-react';
 import { Header } from './components/Header';
 import { Sidebar } from './components/Sidebar';
 import { TextEditor } from './components/TextEditor';
-import { FocusBanner } from './components/FocusBanner';
 import { Settings } from './components/Settings';
 import { useResponsive } from './hooks/useResponsive';
 
@@ -18,12 +17,11 @@ interface Block {
   type: 'title' | 'body' | 'markdown' | 'type-picker';
   content: string;
   tags: string[];
-  focusMessage: string;
 }
 
 export type BlockAction =
   | { type: 'UPDATE_BLOCK'; blockId: string; updates: Partial<Block> }
-  | { type: 'ADD_BLOCK'; afterId?: string; blockType: 'title' | 'body' | 'markdown' | 'type-picker'; focusMessage: string }
+  | { type: 'ADD_BLOCK'; afterId?: string; blockType: 'title' | 'body' | 'markdown' | 'type-picker'; blockId: string }
   | { type: 'DELETE_BLOCK'; blockId: string }
   | { type: 'ADD_TAG'; blockId: string; tag: string }
   | { type: 'REMOVE_TAG'; blockId: string; tagIndex: number }
@@ -43,11 +41,10 @@ const blockReducer = (state: Block[], action: BlockAction): Block[] => {
     
     case 'ADD_BLOCK': {
       const newBlock: Block = {
-        id: Date.now().toString(),
+        id: action.blockId,
         type: action.blockType,
         content: action.blockType === 'title' ? 'New Title' : action.blockType === 'body' ? 'New body text...' : action.blockType === 'markdown' ? '# New markdown content\n\nStart writing...' : '',
-        tags: [],
-        focusMessage: action.focusMessage
+        tags: []
       };
       
       if (action.afterId) {
@@ -95,60 +92,38 @@ export default function App() {
   const { isMobile, isTablet, isDesktop } = useResponsive();
   const [activeTab, setActiveTab] = useState('Main');
   const [title, setTitle] = useState('Document Title');
-  const [focusedBlockId, setFocusedBlockId] = useState<string | null>(null);
   
-  // Random focus prompts
-  const focusPrompts = [
-    "Why does this matter?",
-    "What's the real point here?", 
-    "Who is this actually for?",
-    "What am I really trying to say?",
-    "What's the one thing that matters most?",
-    "How does this move me forward?",
-    "What would make this worth reading?",
-    "Why should anyone care?",
-    "What's my actual goal here?",
-    "What's the hard truth I'm avoiding?"
-  ];
   
   const [blocks, dispatch] = useReducer(blockReducer, [
     {
       id: '1',
       type: 'title',
       content: '👋 Welcome to Deckhand!🃏',
-      tags: ['Hello'],
-      focusMessage: 'This is the first title. It should draw attention!'
+      tags: ['Hello']
     },
     {
       id: '2',
       type: 'body',
       content: "Each block should contain one *focused idea* - something that fits comfortably in view so you always know its purpose at a glance. Think of blocks as thoughts that can stand alone but connect to form larger ideas.",
-      tags: ['Info'],
-      focusMessage: 'This is the first paragraph. It should get the reader hooked.'
+      tags: ['Info']
     },
     {
       id: '3',
       type: 'body',
       content: "Try writing a single concept per block. \n - When you find yourself switching topics or adding 'and another thing...' - that's your cue to create a new block. This keeps your writing modular and your thoughts organized.",
-
-      tags: ['Inspiring','Recommendation'],
-      focusMessage: "Where is this going? Edit this message to give the card some direction!"
+      tags: ['Inspiring','Recommendation']
     },
-        {
+    {
       id: '4',
       type: 'title',
-      content: "The Focus Banner",
-
-      tags: ['the what now'],
-      focusMessage: "Where is this going? Edit this message to give the card some direction!"
+      content: "Block-based Writing",
+      tags: ['concept']
     },
-        {
+    {
       id: '5',
       type: 'body',
-      content: "Each card has a purpose which is written in **bold** on the banner above. You can edit the banner message for each card. Try it now. ",
-
-      tags: ['focus'],
-      focusMessage: "Where is this going? Edit this message to give the card some direction!"
+      content: "Each block represents a focused unit of content. This modular approach helps organize thoughts and makes content easier to manage and restructure.",
+      tags: ['writing']
     }
   ]);
   
@@ -212,7 +187,6 @@ export default function App() {
         setTitle={setTitle}
         blocks={blocks}
         dispatch={dispatch}
-        setFocusedBlockId={setFocusedBlockId}
         clearBlocks={clearBlocks}
       />
       
@@ -300,18 +274,6 @@ export default function App() {
             <Settings />
           ) : (
             <>
-              {/* Focus Banner - Responsive */}
-              <FocusBanner
-                focusedBlockId={focusedBlockId}
-                blocks={blocks}
-                dispatch={dispatch}
-                sidebarVisible={sidebarVisible}
-                toggleSidebar={toggleSidebar}
-                isMobile={isMobile}
-                isTablet={isTablet}
-                isDesktop={isDesktop}
-              />
-
               {/* Editor Content - Responsive spacing and max-width */}
               <div className={`flex-1 overflow-auto ${
                 isMobile ? 'p-3' : isTablet ? 'p-4' : 'p-8'
@@ -323,9 +285,6 @@ export default function App() {
                     key="main-editor"
                     blocks={blocks}
                     dispatch={dispatch}
-                    focusedBlockId={focusedBlockId}
-                    setFocusedBlockId={setFocusedBlockId}
-                    focusPrompts={focusPrompts}
                     isMobile={isMobile}
                     isTablet={isTablet}
                     isDesktop={isDesktop}

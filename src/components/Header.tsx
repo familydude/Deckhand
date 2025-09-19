@@ -8,7 +8,6 @@ interface Block {
   type: 'title' | 'body';
   content: string;
   tags: string[];
-  focusMessage: string;
 }
 
 interface HeaderProps {
@@ -18,11 +17,10 @@ interface HeaderProps {
   setTitle: (title: string) => void;
   blocks: Block[];
   dispatch: any;
-  setFocusedBlockId: (id: string | null) => void;
   clearBlocks: () => void;
 }
 
-export function Header({ activeTab, setActiveTab, title, setTitle, blocks, dispatch, setFocusedBlockId, clearBlocks }: HeaderProps) {
+export function Header({ activeTab, setActiveTab, title, setTitle, blocks, dispatch, clearBlocks }: HeaderProps) {
   const { isMobile, isTablet, isDesktop } = useResponsive();
   const tabs = ['Main', 'Later', 'Notes', 'Theme', 'Settings', 'Board'];
 
@@ -79,7 +77,6 @@ export function Header({ activeTab, setActiveTab, title, setTitle, blocks, dispa
           if (documentData.title && documentData.blocks && Array.isArray(documentData.blocks)) {
             if (DEBUG_FLAGS.FILE_DEBUG) console.log('Loading document with blocks:', documentData.blocks);
             setTitle(documentData.title);
-            setFocusedBlockId(null); // Clear focused block when loading new document
             dispatch({ type: 'LOAD_DOCUMENT', blocks: documentData.blocks });
             if (DEBUG_FLAGS.FILE_DEBUG) console.log('Dispatch called with LOAD_DOCUMENT');
           } else {
@@ -128,7 +125,6 @@ export function Header({ activeTab, setActiveTab, title, setTitle, blocks, dispa
     if (confirmed) {
       clearBlocks();
       setTitle('Untitled Document');
-      setFocusedBlockId(null);
     }
   };
 

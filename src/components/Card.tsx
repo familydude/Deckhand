@@ -9,12 +9,11 @@ interface Block {
   type: 'title' | 'body' | 'markdown' | 'type-picker';
   content: string;
   tags: string[];
-  focusMessage: string;
 }
 
 export type BlockAction =
   | { type: 'UPDATE_BLOCK'; blockId: string; updates: Partial<Block> }
-  | { type: 'ADD_BLOCK'; afterId?: string; blockType: 'title' | 'body' | 'markdown' | 'type-picker'; focusMessage: string }
+  | { type: 'ADD_BLOCK'; afterId?: string; blockType: 'title' | 'body' | 'markdown' | 'type-picker'; blockId: string }
   | { type: 'DELETE_BLOCK'; blockId: string }
   | { type: 'ADD_TAG'; blockId: string; tag: string }
   | { type: 'REMOVE_TAG'; blockId: string; tagIndex: number }
@@ -26,9 +25,6 @@ interface CardProps {
   index: number;
   blocks: Block[];
   dispatch: React.Dispatch<BlockAction>;
-  focusedBlockId: string | null;
-  setFocusedBlockId: React.Dispatch<React.SetStateAction<string | null>>;
-  focusPrompts: string[];
   isMobile: boolean;
   isTablet: boolean;
   isDesktop: boolean;
@@ -45,9 +41,6 @@ export function Card({
   index,
   blocks,
   dispatch,
-  focusedBlockId,
-  setFocusedBlockId,
-  focusPrompts,
   isMobile,
   isTablet,
   isDesktop,
@@ -181,9 +174,6 @@ export function Card({
   };
 
   const handleInfoClick = () => {
-    // Always set this card as the focused card
-    setFocusedBlockId(block.id);
-
     if (block.type !== 'type-picker') {
       // Preserve content when switching to type-picker mode
       updateBlock(block.id, { type: 'type-picker' });
@@ -305,7 +295,6 @@ export function Card({
             <div
               onClick={() => {
                 updateBlock(block.id, { type: 'body' });
-                setFocusedBlockId(block.id);
               }}
               className={`w-full cursor-text min-h-[1.5rem] markdown-content ${
                 isMobile
@@ -329,9 +318,6 @@ export function Card({
               onChange={(e) => {
                 updateBlock(block.id, { content: e.target.value });
                 autoResizeTextarea(e.target);
-              }}
-              onFocus={() => {
-                setFocusedBlockId(block.id);
               }}
               onKeyDown={(e) => handleKeyDown(e, block.id)}
               className={`w-full bg-transparent border-none outline-none resize-none overflow-hidden cursor-text ${
