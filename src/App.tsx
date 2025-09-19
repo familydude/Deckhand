@@ -187,8 +187,6 @@ export default function App() {
   return (
     <div className="h-screen flex flex-col bg-gray-50">
       <Header
-        activeTab={activeTab}
-        setActiveTab={setActiveTab}
         title={title}
         setTitle={setTitle}
         blocks={blocks}

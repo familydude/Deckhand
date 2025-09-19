@@ -11,8 +11,6 @@ interface Block {
 }
 
 interface HeaderProps {
-  activeTab: string;
-  setActiveTab: (tab: string) => void;
   title: string;
   setTitle: (title: string) => void;
   blocks: Block[];
@@ -20,9 +18,8 @@ interface HeaderProps {
   clearBlocks: () => void;
 }
 
-export function Header({ activeTab, setActiveTab, title, setTitle, blocks, dispatch, clearBlocks }: HeaderProps) {
+export function Header({ title, setTitle, blocks, dispatch, clearBlocks }: HeaderProps) {
   const { isMobile, isTablet, isDesktop } = useResponsive();
-  const tabs = ['Main', 'Later', 'Notes', 'Theme', 'Settings', 'Board'];
 
   // Save document as JSON
   const saveDocument = () => {
@@ -139,35 +136,12 @@ export function Header({ activeTab, setActiveTab, title, setTitle, blocks, dispa
         <div className={`bg-green-500 rounded-full ${isMobile ? 'w-2 h-2' : 'w-3 h-3'}`}></div>
       </div>
 
-      {/* Tabs - Hide on mobile, show simplified on tablet */}
-      {!isMobile && (
-        <div className="flex items-center gap-1">
-          {tabs.map((tab) => (
-            <motion.button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              className={`rounded-t border-b transition-colors ${
-                isMobile ? 'px-2 py-0.5 text-xs' : 'px-3 py-1'
-              } ${
-                activeTab === tab
-                  ? 'text-gray-900 border-gray-900 bg-white'
-                  : 'text-gray-500 border-gray-300 hover:text-gray-700'
-              }`}
-              whileHover={{ y: -1 }}
-              whileTap={{ y: 0 }}
-            >
-              {tab}
-            </motion.button>
-          ))}
+      {/* Simple d: Logo */}
+      <div className="flex-1 flex items-center justify-center">
+        <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-sm border border-gray-200">
+          <span className="text-gray-700 font-mono text-sm font-medium">d:</span>
         </div>
-      )}
-
-      {/* Mobile: Show only current tab name */}
-      {isMobile && (
-        <div className="text-sm text-gray-600 font-medium">
-          {activeTab}
-        </div>
-      )}
+      </div>
 
       {/* Load/Save Buttons - Responsive sizing and visibility */}
       <div className={`flex items-center ${isMobile ? 'gap-1' : 'gap-2'}`}>
