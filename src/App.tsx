@@ -122,8 +122,8 @@ export default function App() {
     },
     {
       id: '5',
-      type: 'body',
-      content: "Each block represents a focused unit of content. This modular approach helps organize thoughts and makes content easier to manage and restructure.",
+      type: 'markdown',
+      content: "```\npython\ndef hello():\n    print(\"Hello, world!\")\n```",
       tags: ['writing']
     }
   ]);
